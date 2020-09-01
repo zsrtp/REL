@@ -187,7 +187,7 @@ $(OFILES_SOURCES) : $(HFILES)
 
 %.gci: %.rel
 	@echo packing ... $(notdir $@)
-	@$(GCIPACK) $< "REL Mod" "Twilight Princess" "($(PRINTVER)) $(PROJECT_NAME)" $(BANNERFILE) $(ICONFILE) $(GAMECODE)
+	@$(GCIPACK) $< "Custom REL File" "Twilight Princess" "($(PRINTVER)) $(PROJECT_NAME)" $(BANNERFILE) $(ICONFILE) $(GAMECODE)
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .jpg extension
