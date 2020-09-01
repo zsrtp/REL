@@ -17,7 +17,7 @@ OUTPUT_FILENAME := REL_File
 
 
 # DON'T TOUCH UNLESS YOU KNOW WHAT YOU'RE DOING
-LIBTP_REL := Externals/libtp_rel
+LIBTP_REL := externals/libtp_rel
 
 GCIPACK := python ../bin/gcipack.py
 # Windows
