@@ -35,4 +35,4 @@ Please edit line `#14` and `#15` of your Makefile in order to change the name of
 	- Provide the necessary VSCode files and extensions
 - Create a very basic tutorial on how to build this
 ---
-This mod is powered by [libtp_rel](//github.com/zsrtp/libtp_rel) ([mirror](//code.zeldatp.net/?p=zsrtp/libtp_rel.git;a=tree)) and licensed under [GPLv3](/LICENSE) | (C) [AECX](//github.com/AECX), [LunarSoap](//github.com/LunarSoap), [Zephiles](//github.com/Zephiles)
+This mod is powered by [libtp_rel](//github.com/zsrtp/libtp_rel) ([mirror](//code.zeldatp.net/?p=zsrtp/libtp_rel.git;a=tree)) and licensed under [GPLv3](/LICENSE) | (C) [AECX](//github.com/AECX), [LunarSoap](//github.com/lunarsoap5), [Zephiles](//github.com/Zephiles)
