@@ -6,7 +6,7 @@ This is a template repository for you to create your very own Twilight Princess 
 ## Project Structure
 ```
 REL
-├───Externals/              // Submodules should be placed here
+├───externals/              // Submodules should be placed here
 │   │   ├───libtp_rel/
 │   │   │   ├───docs/       // Doxygen HTML documentation output
 │   │   │   ├───include/    // Library Header files
