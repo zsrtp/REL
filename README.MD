@@ -14,9 +14,6 @@ REL
 ├───assets/                 // Additional resources that are not code
 │   ├───banner.raw          // Game banner for the GCI
 |   ├───icon.raw            // Game icon for the GCI
-│   ├───eu.lst              // .lst files match symbols to RAM Addresses and
-|   ├───us.lst              // are used by the linker to do so.
-|   ├───jp.lst
 ├───bin/                    // Binary files and scripts
 │   ├───elf2rel             // Linux Binary of elf2rel
 │   ├───elf2rel.exe         // Windows "
