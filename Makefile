@@ -135,7 +135,7 @@ export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 # For REL linking
 export LDFILES		:= $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.ld)))
-export MAPFILE		:= $(realpath $(LIBTP_REL)/include/$(VERSION).lst)
+export MAPFILE		:= $(realpath assets/$(VERSION).lst)
 export BANNERFILE	:= $(realpath assets/banner.raw)
 export ICONFILE		:= $(realpath assets/icon.raw)
 
