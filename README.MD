@@ -18,6 +18,7 @@ REL
 │   ├───elf2rel             // Linux Binary of elf2rel
 │   ├───elf2rel.exe         // Windows "
 │   ├───gcipack.py          // Packs a REL into a GCI
+│   ├───*.lst          	    // Symbol:Address pairs for each gameversion
 ├───include/                // Your Header (.h) files
 ├───source/                 // Your Source (.cpp) files
 ├───Makefile                // Build script
