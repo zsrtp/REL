@@ -9,11 +9,18 @@ endif
 
 include $(DEVKITPPC)/gamecube_rules
 
+# Format: YYYYMMDDHHmm + 2 char Game Region
+BUILDID:='"$(shell date +'%Y%m%d%H%M')"'
+
+# Version
+_VERSION:=1.2.3
+# Variant: i.e. Public, NoLogic, Race, etc.
+_VARIANT:=master
 
 # This shows up in the memory card (manager) and can contain spaces
-PROJECT_NAME := My REL Mod
+PROJECT_NAME := Example REL
 # This will be the resulting .gci file - No spaces
-OUTPUT_FILENAME := REL_File
+OUTPUT_FILENAME := TEMPLATE
 
 
 # DON'T TOUCH UNLESS YOU KNOW WHAT YOU'RE DOING
@@ -60,7 +67,7 @@ INCLUDES	:=	include $(LIBTP_REL)/include
 
 MACHDEP		= -mno-sdata -mgcn -DGEKKO -mcpu=750 -meabi -mhard-float
 
-CFLAGS		= -nostdlib -ffreestanding -ffunction-sections -fdata-sections -g -Os -Wall -Werror -Wno-address-of-packed-member $(MACHDEP) $(INCLUDE)
+CFLAGS		= -nostdlib -ffreestanding -ffunction-sections -fdata-sections -g -Os -Wall -Werror -Wno-address-of-packed-member $(MACHDEP) $(INCLUDE) -D_PROJECT_NAME='"$(PROJECT_NAME)"' -D_VERSION='"$(_VERSION)"' -D_VARIANT='"$(_VARIANT)"'
 CXXFLAGS	= -fno-exceptions -fno-rtti -std=gnu++17 $(CFLAGS)
 
 LDFLAGS		= -r -e _prolog -u _prolog -u _epilog -u _unresolved -Wl,--gc-sections -nostdlib -g $(MACHDEP) -Wl,-Map,$(notdir $@).map
@@ -68,16 +75,19 @@ LDFLAGS		= -r -e _prolog -u _prolog -u _epilog -u _unresolved -Wl,--gc-sections 
 # Platform options
 ifeq ($(VERSION),us)
 	CFLAGS += -DTP_US
+	CFLAGS += -D_BUILDID='"$(BUILDID)US"'
 	ASFLAGS += -DTP_US
 	GAMECODE = "GZ2E"
 	PRINTVER = "US"
 else ifeq ($(VERSION),eu)
 	CFLAGS += -DTP_EU
+	CFLAGS += -D_BUILDID='"$(BUILDID)EU"'
 	ASFLAGS += -DTP_EU
 	GAMECODE = "GZ2P"
 	PRINTVER = "EU"
 else ifeq ($(VERSION),jp)
 	CFLAGS += -DTP_JP
+	CFLAGS += -D_BUILDID='"$(BUILDID)JP"'
 	ASFLAGS += -DTP_JP
 	GAMECODE = "GZ2J"
 	PRINTVER = "JP"

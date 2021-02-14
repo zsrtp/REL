@@ -9,11 +9,15 @@
  *
  */
 #pragma once
+#include <display/console.h>
+#include <tp/f_ap_game.h>
+
+#include <cinttypes>
 
 namespace mod
 {
     /***********************************************************************************
-     * We're creating a cusutom REL file and thus the real main function already ran when
+     * We're creating a cusutom REL file and thus the real main function already ran
      * before we even load this program.
      * That's also why we create a custom namespace to avoid confusing the compiler with the actual main function
      * whilst still having a neat starting function for you to begin your Twilight Princess mod development!
@@ -24,4 +28,19 @@ namespace mod
      * assuming the REL got loaded in the first place.
      ***********************************************************************************/
     void main();
+
+    /**
+     * @brief This function is called when there's a frame update
+     */
+    void procNewFrame();
+
+    // Console
+    libtp::display::Console c;
+
+    // Counter
+    uint32_t i;
+
+    // "trampoline/return" function to the original function that we hook in order to proc our NewFrame function
+    void (*return_fapGm_Execute)() = nullptr;
+
 }  // namespace mod

@@ -29,11 +29,15 @@ REL
 ## Getting started
 
 This repository provides you with a solid start, you should use the predefined main function as an entry point to your mod...
-Please edit line `#14` and `#15` of your Makefile in order to change the name of your project.
+Please check Lines 12 through 23 in the Makefile to change some of the definitions and names.
 
-## Todo
-- Create the guidelines document for contributors
-	- Provide the necessary VSCode files and extensions
-- Create a very basic tutorial on how to build this
+## Coding guidelines
+
+Our coding guidelines, and other useful information, can be found in our wiki at [wiki.zeldatp.net](wiki.zeldatp.net/Dev).
+Please refer to
+
+## TODO
+- Basic REL tutorial (wiki)
+
 ---
-This mod is powered by [libtp_rel](//github.com/zsrtp/libtp_rel) ([mirror](//code.zeldatp.net/?p=zsrtp/libtp_rel.git;a=tree)) and licensed under [GPLv3](/LICENSE) | (C) [AECX](//github.com/AECX), [LunarSoap](//github.com/lunarsoap5), [Zephiles](//github.com/Zephiles)
+This mod is powered by [libtp_rel](//github.com/zsrtp/libtp_rel) and licensed under [GPLv3](/LICENSE) | (C) [AECX](//github.com/AECX), [LunarSoap](//github.com/lunarsoap5), [Zephiles](//github.com/Zephiles)
