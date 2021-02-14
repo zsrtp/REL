@@ -148,3 +148,8 @@
 // JFWSystem.o
 // data
 804511B8:systemConsole
+
+//d_item_data.o
+803AC5A0:item_resource
+803ADD88:field_item_res
+803AED78:item_info
