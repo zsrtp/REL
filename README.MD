@@ -33,7 +33,7 @@ Please check Lines 12 through 23 in the Makefile to change some of the definitio
 
 ## Coding guidelines
 
-Our coding guidelines, and other useful information, can be found in our wiki at [//wiki.zeldatp.net](wiki.zeldatp.net/Dev).
+Our coding guidelines, and other useful information, can be found in our wiki at [wiki.zeldatp.net](//wiki.zeldatp.net/Dev).
 Please refer to
 
 ## TODO
