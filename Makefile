@@ -18,22 +18,27 @@ _VERSION_MINOR:=0
 _VERSION_PATCH:=0
 _VERSION:='"$(_VERSION_MAJOR).$(_VERSION_MINOR).$(_VERSION_PATCH)"'
 # Variant: i.e. Public, NoLogic, Race, etc.
-_VARIANT:=master
+_VARIANT:=public
 
 # This shows up in the memory card (manager) and can contain spaces
-PROJECT_NAME := Example REL
+PROJECT_NAME := Randomizer
 # This will be the resulting .gci file - No spaces
-OUTPUT_FILENAME := TEMPLATE
+OUTPUT_FILENAME := Randomizer
 
 
 # DON'T TOUCH UNLESS YOU KNOW WHAT YOU'RE DOING
 LIBTP_REL := externals/libtp_rel
 
-GCIPACK := python ../bin/gcipack.py
-# Windows
-ELF2REL := ../bin/elf2rel.exe
-# Linux
-# ELF2REL := ../bin/elf2rel
+GCIPACK := python3 ../bin/gcipack.py
+
+UNAME := $(shell uname)
+
+ifeq ($(UNAME), Linux)
+	ELF2REL := ../bin/elf2rel
+else
+	ELF2REL := ../bin/elf2rel.exe
+endif
+
 
 ifeq ($(VERSION),)
 all: us jp eu
@@ -70,7 +75,7 @@ INCLUDES	:=	include $(LIBTP_REL)/include
 
 MACHDEP		= -mno-sdata -mgcn -DGEKKO -mcpu=750 -meabi -mhard-float
 
-CFLAGS		= -nostdlib -ffreestanding -ffunction-sections -fdata-sections -g -Os -Wall -Werror -Wno-address-of-packed-member $(MACHDEP) $(INCLUDE) -D_PROJECT_NAME='"$(PROJECT_NAME)"' -D_VERSION='"$(_VERSION)"' -D_VARIANT='"$(_VARIANT)"'
+CFLAGS		= -nostdlib -ffreestanding -ffunction-sections -fdata-sections -g -Os -Wall -Werror -Wno-address-of-packed-member $(MACHDEP) $(INCLUDE) -D_PROJECT_NAME='"$(PROJECT_NAME)"' -D_VERSION_MAJOR='$(_VERSION_MAJOR)' -D_VERSION_MINOR='$(_VERSION_MINOR)' -D_VERSION_PATCH='$(_VERSION_PATCH)'  -D_VERSION='"$(_VERSION)"' -D_VARIANT='"$(_VARIANT)"'
 CXXFLAGS	= -fno-exceptions -fno-rtti -std=gnu++17 $(CFLAGS)
 
 LDFLAGS		= -r -e _prolog -u _prolog -u _epilog -u _unresolved -Wl,--gc-sections -nostdlib -g $(MACHDEP) -Wl,-Map,$(notdir $@).map
