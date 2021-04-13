@@ -8,9 +8,9 @@
  * @copyright Copyright (c) YYYY
  *
  */
-#include <display/console.h>  // Contains a very neat helper class to print to the console
+#include <display/console.h>     // Contains a very neat helper class to print to the console
 #include <main.h>
-#include <patch.h>  // Contains code for hooking into a function
+#include <patch.h>     // Contains code for hooking into a function
 #include <tp/f_ap_game.h>
 
 namespace mod
@@ -38,7 +38,7 @@ namespace mod
         // have hello world at the top
 
         // Hook the function that runs each frame
-        return_fapGm_Execute = libtp::patch::hookFunction(libtp::tp::f_ap_game::fapGm_Execute, procNewFrame);
+        return_fapGm_Execute = libtp::patch::hookFunction( libtp::tp::f_ap_game::fapGm_Execute, procNewFrame );
         return;
     }
 
@@ -46,15 +46,15 @@ namespace mod
     {
         // This runs BEFORE the original (hooked) function (fapGm_Execute)
 
-        // we can do whatever stuff we like... counting for example
+        // we can do whatever stuff we like... counting for example:
         i++;
         c << "Frames: " << i << "\r";
 
-        // return what our original function would've returned
+        // return what our original function would've returned (in this case the return is obsolete since it is a void func)
         // And most importantly, since this is related to the frame output, call the original function at all because it may do
         // important stuff that would otherwise be skipped!
 
-        return return_fapGm_Execute();  // hookFunction replaced this return_ function with a branch back to the original
-                                        // function so that we can use it now
+        return return_fapGm_Execute();     // hookFunction replaced this return_ function with a branch back to the original
+                                           // function so that we can use it now
     }
-}  // namespace mod
+}     // namespace mod
