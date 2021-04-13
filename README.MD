@@ -40,13 +40,12 @@ You can refer to the [Randomizer](//github.com/zsrtp/Randomizer) Project for ref
 Our [wiki](//wiki.zeldatp.net) is meant to be a central source of information for TP with a slightly technical focus we provide the most crucial information such as Stages & Rooms or item ids. If you're looking for information you should be looking there or ask in the [dev discord](//discord.gg/CsDF9hY).
 
 ### Coding guidelines
-Our coding guidelines, and other useful information, can be found in our wiki at [wiki.zeldatp.net](//wiki.zeldatp.net/Dev).
-If you intend to share this code with the @zsrtp community, please follow the guidelines as strictly as possible.
+If you intend to share this code with the @zsrtp community, please follow the [guidelines](//wiki.zeldatp.net/Coding_Guidelines) as strictly as possible.
 
 ## Building
 ---
 **Dependencies**
-  * [DevkitPPC] comes with [devkitPro](//github.com/devkitPro/installer/releases)
+  * DevkitPPC comes with [devkitPro](//github.com/devkitPro/installer/releases)
   * [Python3](//www.python.org/downloads) (should be added to PATH or you will likely need Makefile adjustments)
   * Optional: [Visual Studio Code](//code.visualstudio.com) with [GC Settings](//wiki.zeldatp.net/Dev:Visual_Studio_Code)
 
