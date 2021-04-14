@@ -44,6 +44,28 @@ If you intend to share this code with the @zsrtp community, please follow the [g
 
 ## Building
 ---
+**Repository**
+*You need to have git installed ([windows](https://git-scm.com/download/win))*
+Open a CMD and navigate to where you want your code to be:
+```
+C:\>mkdir Code
+C:\>cd Code
+C:\Code>git clone https://github.com/zsrtp/REL.git
+Cloning into REL
+remote: Enumerating objects: 132, done.
+remote: Counting objects: 100% (132/132), done.
+remote: Compressing objects: 100% (87/87), done.
+remote: Total 132 (delta 56), reused 98 (delta 29), pack-reused 0
+Receiving objects: 100% (132/132), 1.24 MiB | 6.45 MiB/s, done.
+Resolving deltas: 100% (56/56), done.
+```
+Download and upate libtp_rel
+```
+C:\Code>git submodule init
+C:\Code>git submodule update --remote
+```
+Done.
+
 **Dependencies**
   * DevkitPPC comes with [devkitPro](//github.com/devkitPro/installer/releases)
   * [Python3](//www.python.org/downloads) (should be added to PATH or you will likely need Makefile adjustments)
