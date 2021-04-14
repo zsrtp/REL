@@ -45,7 +45,9 @@ If you intend to share this code with the @zsrtp community, please follow the [g
 ## Building
 ---
 **Repository**
+
 *You need to have git installed ([windows](https://git-scm.com/download/win))*
+
 Open a CMD and navigate to where you want your code to be:
 ```
 C:\>mkdir Code
