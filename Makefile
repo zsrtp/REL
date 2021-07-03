@@ -21,9 +21,9 @@ _VERSION:='"$(_VERSION_MAJOR).$(_VERSION_MINOR).$(_VERSION_PATCH)"'
 _VARIANT:=public
 
 # This shows up in the memory card (manager) and can contain spaces
-PROJECT_NAME := Randomizer
+PROJECT_NAME := REL Example
 # This will be the resulting .gci file - No spaces
-OUTPUT_FILENAME := Randomizer
+OUTPUT_FILENAME := REL
 
 
 # DON'T TOUCH UNLESS YOU KNOW WHAT YOU'RE DOING
