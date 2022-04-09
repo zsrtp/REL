@@ -37,7 +37,7 @@ You can refer to the [Randomizer](//github.com/zsrtp/Randomizer) Project for ref
 ## Wiki
 ---
 ### General
-Our [wiki](//wiki.zeldatp.net) is meant to be a central source of information for TP with a slightly technical focus we provide the most crucial information such as Stages & Rooms or item ids. If you're looking for information you should be looking there or ask in the [dev discord](//discord.gg/CsDF9hY).
+Our [wiki](//wiki.zeldatp.net) is meant to be a central source of information for TP with a slightly technical focus we provide the most crucial information such as Stages & Rooms or item ids. If you're looking for information you should be looking there or ask in the [dev discord](//discord.gg/aZx8ZFcSPy).
 
 ### Coding guidelines
 If you intend to share this code with the @zsrtp community, please follow the [guidelines](//wiki.zeldatp.net/Dev:Coding_Guidelines) as strictly as possible.
