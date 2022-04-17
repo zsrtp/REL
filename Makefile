@@ -15,7 +15,7 @@ BUILDID:='"$(shell date +'%Y%m%d%H%M')"'
 # Version
 _VERSION_MAJOR:=1
 _VERSION_MINOR:=0
-_VERSION_PATCH:=0
+_VERSION_PATCH:=1
 _VERSION:='"$(_VERSION_MAJOR).$(_VERSION_MINOR).$(_VERSION_PATCH)"'
 # Variant: i.e. Public, NoLogic, Race, etc.
 _VARIANT:=public
