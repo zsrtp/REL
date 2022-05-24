@@ -23,6 +23,8 @@ namespace mod
         mod->init();
     }
 
+    void exit() {}
+
     // Create our console instance (it will automatically display some of the definitions from our Makefile like version,
     // variant, project name etc.
     // this console can be used in a similar way to cout to make printing a little easier; it also supports \n for new lines
