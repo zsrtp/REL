@@ -101,7 +101,23 @@ linking ... REL.us.elf
 output ... REL.us.rel
 packing ... REL.us.gci
 ```
-The `REL.us.gci` (`REL.wus0.bin` for wii) (other versions are: `jp`, `eu`, `wus0`, `wus2`, `wjp`, and `weu`) file is now containing our custom REL. Load it with the REL Loader cheat or a hacked save file that contains the loader, it can be found on the [rando](//rando.zeldatp.net) homepage.
+The `REL.us.gci` (`REL.wus0.bin` for wii) (other versions are: `jp`, `eu`, `wus0`, `wus2`, `wjp`, and `weu`, as well as two other build target `gcn` and `wii` which build all the version for the specified platform) file is now containing our custom REL. Load it with the REL Loader cheat or a hacked save file that contains the loader, it can be found on the [rando](//rando.zeldatp.net) homepage.
+
+##### Injecting into an existing Wii save
+
+If you wish to inject the mod into an existing Wii save instead of generating an empty save, you can use the `nandpack.py` script to do that. Here is an example:
+
+```shell
+$ ./bin/nandpack.py inject -i 3 -g us0 -f "REL Example" REL.wus0.rel data.bin REL.wus0.bin
+```
+
+Where:
+- `-i 3`: inject the mod into the 3rd slot.
+- `-g us0`: specify we're injecting into an NTSCU 1.0 save.
+- `-f "REL Example"`: set the name of the slot to `REL Example`
+- `REL.wus0.rel`: this is the file containing the mod itself that we want to inject into the save.
+- `data.bin`: this is the save file we want to inject the mod into.
+- `REL.wus0.bin`: this is the resulting save file with the mod injected into it.
 
 ---
 This mod is powered by [libtp_rel](//github.com/zsrtp/libtp_rel) and licensed under [GPLv3](/LICENSE) | (C) [AECX](//github.com/AECX), [LunarSoap](//github.com/lunarsoap5), [Zephiles](//github.com/Zephiles), [kipcode66](//github.com/kipcode66)
