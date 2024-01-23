@@ -12,13 +12,15 @@ REL
 │   │   │   ├───include/    // Library Header files
 │   │   │   ├───source/     // Library source files
 ├───assets/                 // Additional resources that are not code
-│   ├───banner.raw          // Game banner for the GCI
+│   ├───gc_banner.raw       // Game banner for the GCI
+|   ├───wii_banner.raw      // Game banner for the Wii save
 |   ├───icon.raw            // Game icon for the GCI
 │   ├───*.lst          	    // Symbol:Address pairs for each version of the game
 ├───bin/                    // Binary files and scripts
 │   ├───elf2rel             // Linux Binary of elf2rel
 │   ├───elf2rel.exe         // Windows "
 │   ├───gcipack.py          // Packs a REL into a GCI
+│   ├───nandpack.py         // Packs a REL into a Wii save
 ├───docs/                   // Doxygen Output folder; can be used for GitHub pages - change in doxygen.conf
 ├───include/                // Your Header (.h) files
 ├───source/                 // Your Source (.cpp) files
@@ -30,7 +32,7 @@ REL
 ## Getting started
 ---
 This repository provides you with a solid start, you should use the predefined main function as an entry point to your mod...
-Please check Lines 12 through 23 in the Makefile to change some of the definitions and names.
+Please check Lines 19 through 30 in the Makefile to change some of the definitions and names.
 
 You can refer to the [Randomizer](//github.com/zsrtp/Randomizer) Project for reference.
 
@@ -63,23 +65,22 @@ Resolving deltas: 100% (56/56), done.
 ```
 Download and upate libtp_rel
 ```
-C:\Code>git submodule init
-C:\Code>git submodule update --remote
+C:\Code\REL> git submodule update --init --remote
 ```
 Done.
 
 **Dependencies**
   * DevkitPPC comes with [devkitPro](//github.com/devkitPro/installer/releases)
   * [Python3](//www.python.org/downloads) (should be added to PATH or you will likely need Makefile adjustments)
+  * [pycryptodomex](https://pypi.org/project/pycryptodomex/) (For Wii only, dependency of [`nandpack.py`](https://github.com/kipcode66/wii_tools))
   * Optional: [Visual Studio Code](//code.visualstudio.com) with [GC Settings](//wiki.zeldatp.net/Dev:Visual_Studio_Code)
 
 **Compiling**
 
-*devkitPro comes with it
-s own MSys2 shell, it is recommended to use it for compilation.
+*devkitPro comes with its own MSys2 shell, it is recommended to use it for compilation.
 
 This is an example of how to build for the NTSC-U version of the Game
-```
+```shell
 $ cd /c/Path/To/REL
 $ make us
 main.cpp
@@ -89,14 +90,18 @@ patch.cpp
 rel.cpp
 tools.cpp
 timer.cpp
+stages.cpp
 console.cpp
+card.cpp
+color_utils.cpp
+texture_utils.cpp
 restfpr_x.s
 restgpr_x.s
-linking ... Randomizer.us.elf
-output ... Randomizer.us.rel
-packing ... Randomizer.us.gci
+linking ... REL.us.elf
+output ... REL.us.rel
+packing ... REL.us.gci
 ```
-The `Randomizer.us.gci` (other versions are: `jp` and `eu`) file is now containing our custom REL. Load it with the REL Loader cheat or a hacked save file that contains the loader, it can be found on the [rando](//rando.zeldatp.net) homepage.
+The `REL.us.gci` (`REL.wus0.bin` for wii) (other versions are: `jp`, `eu`, `wus0`, `wus2`, `wjp`, and `weu`) file is now containing our custom REL. Load it with the REL Loader cheat or a hacked save file that contains the loader, it can be found on the [rando](//rando.zeldatp.net) homepage.
 
 ---
-This mod is powered by [libtp_rel](//github.com/zsrtp/libtp_rel) and licensed under [GPLv3](/LICENSE) | (C) [AECX](//github.com/AECX), [LunarSoap](//github.com/lunarsoap5), [Zephiles](//github.com/Zephiles)
+This mod is powered by [libtp_rel](//github.com/zsrtp/libtp_rel) and licensed under [GPLv3](/LICENSE) | (C) [AECX](//github.com/AECX), [LunarSoap](//github.com/lunarsoap5), [Zephiles](//github.com/Zephiles), [kipcode66](//github.com/kipcode66)
