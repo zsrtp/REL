@@ -146,6 +146,10 @@
 802cd988:do_alloc_JKRExpHeap
 802ce014:do_free_JKRExpHeap
 
+// OSCache.o
+80330c3c:ICInvalidateRange
+80330b58:DCFlushRange
+
 // runtime.o
 803a8b54:_savefpr_14
 803a8b58:_savefpr_15
