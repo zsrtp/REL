@@ -269,12 +269,14 @@ ifeq ($(PLATFORM),gcn)
 	@$(GCIPACK) $< "Custom REL File" "Twilight Princess" "($(PRINTVER)) $(PROJECT_NAME)" $(BANNERFILE) $(ICONFILE) $(GAMECODE)
 
 else ifeq ($(PLATFORM),wii)
+ifndef SKIP_PACK
 %.bin: %.rel
 	@[ -d $(BUILD) ] || mkdir -p $(BUILD)
 	@echo formating ... $(notdir $(BUILD))/pcrel.bin
 	@$(NANDPACK) format $< $(BUILD)/pcrel.bin
 	@echo packing ... $(notdir $@)
 	@$(NANDPACK) generate -g $(PACKVER) -l 2 -f "$(PROJECT_NAME)" $< $(BANNERFILE) $@
+endif
 endif
 
 #---------------------------------------------------------------------------------
