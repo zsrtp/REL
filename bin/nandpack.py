@@ -38,7 +38,7 @@ from datetime import datetime
 # | Constants definition |
 # +----------------------+
 
-# Program Constants/global varibables
+# Program Constants/global variables
 VERSION = "0.2.1"
 
 # Constants
