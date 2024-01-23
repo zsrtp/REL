@@ -39,7 +39,7 @@ from datetime import datetime
 # +----------------------+
 
 # Program Constants/global variables
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 
 # Constants
 BLOCK_SZ = 0x40
@@ -145,199 +145,207 @@ BIN_DATA_INIT = {
 BIN_DATA_MAIN = {
     '1': {
         # NA 1.0
-        "us0": base64.b64decode("PGCANGBjxXRIAAAFfIgCpjiEAFBIAAFJiG2yYCwDAABBg"
-                                "gAggG27SDiAAAU4oAABPYCAKmGM/Nx9iAOmToAAIThgAA"
-                                "A8gIAAOKAAAD2AgAFhjKn4fYkDpk6ABCCUIf/gfAgCppA"
-                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
-                                "gDigAvo9gIA8YYwJFH2IA6ZOgAAhf6PreDiAAvpIAADRk"
-                                "62/kDh9AvqQbb+UPGCANGBjd/RjpADsSAAAnTxggDRgbM"
-                                "V4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
-                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4R28Hx/"
-                                "G3g/wIAAY8Nb9DyAgLA4oAL6S4wH9WPDW/Q4gAL6SAAAS"
-                                "TxggABgY4ZEY8RduEgAACE8YIA0YGPFdDyAgABghFxQSA"
-                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
-                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CANGOlYYh8"
-                                "qAOmToAAIWOjYmx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
-                                "CR8CAOmOCEAIE6AACCQbbJklCH/4HwIAqaQAQAkv2EACD"
-                                "/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDb"
-                                "BZSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAg"
-                                "SDa5ASwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/h"
-                                "ON4SAAAWXx7G3h/o+t4f2TbeH+F43hINrjJLAMAAEGAAF"
-                                "iAmwAgSAAANXx8G3h/Y9t4f4TjeEg0UZksAwABQIIAKJO"
-                                "fVLiTf1S8g9sANEgAADCAbbNkSC3XvIBts2Q4oAAgSC3R"
-                                "JH9j23hINFOxf4TjeEv//+F/ZNt4S///2X+j63hINsJxf"
-                                "6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CA"
-                                "OmOCEAIEgAJ2g="),  # 706372656C2E62696E00
+        "us0": base64.b64decode("PYCANGGMovR9iAOmToAAITxggDRgY8V0SAAABXyIAqY4h"
+                                "ABQSAABSYhtsmAsAwAAQYIAIIBtu0g4gAAFOKAAAT2AgC"
+                                "phjPzcfYgDpk6AACE4YAAAPICAADigAAA9gIABYYyp+H2"
+                                "JA6ZOgAQglCH/4HwIAqaQAQAkv6EACHx+G3h8nyN4P6CA"
+                                "sH+j63hIAAAFfIgCpjiE/3A4oAMYPYCAPGGMCRR9iAOmT"
+                                "oAAIX+j63g4gAMYSAAA0ZOtv5A4fQMYkG2/lDxggDRgY3"
+                                "f0Y6QA/EgAAJ09gIA0YYzFeH2JA6Z/w/N4f+T7eLuhAAi"
+                                "AAQAkfAgDpjghACBOgAQgfH8beDxggTNgYzqcPICAsGCE"
+                                "ARxIAABdf+P7eEuEduB8fxt4P8CAAGPDW/Q8gICwOKADG"
+                                "EuMB+Vjw1v0OIADGEgAAEk8YIAAYGOGRGPEXchIAAAhPG"
+                                "CANGBjxXQ8gIAAYIRcYEgAAA1/4/t4SIM5OHyDIFBUhAG"
+                                "6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8"
+                                "fxt4fJ4jeD+ggDRjpWGIfKgDpk6AACFjo2JsfGgDpn/j+"
+                                "3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAgkG2yZJ"
+                                "Qh/1B8CAKmkAEAtL9BAAhINEUZfHobeD/ggAA7wAAAO6E"
+                                "AIGPjXwR/pOt4OKAAAUg2wVUsAwAAQIIA5H+j63g4gAAA"
+                                "OKAAAkg2ur0sAwAAQYAAzDuDAB9XnAA0f6PreDiAAAA4o"
+                                "AAASDa6nSwDAABBgACsgG2zZH+E43g4oAAgSC3RbXx7G3"
+                                "h/o+t4f2TbeH+F43hINrixLAMAAECBAFyAbbNsgJsAIIC"
+                                "7AERILdFBfHwbeEg0RGF/Y9t4f4TjeEg0UXUsAwABQIIA"
+                                "GEg0RF2Tn1S4k39UvIPbADRIAAAof2PbeEg0U51INERBg"
+                                "G2zbH+E43hILdeFgG2zZH9k23hILdd5f6PreEg2wlEsHg"
+                                "AAQYIADH/IA6ZOgAAhf0PTeEg0RB27QQAIgAEAtHwIA6Y"
+                                "4IQCwSAAnSA=="),  # 6D6F642E72656C00
         # NA 1.2
-        "us2": base64.b64decode("PGCAM2Bjb0RIAAAFfIgCpjiEAFBIAAFJiG2x4CwDAABBg"
-                                "gAggG266DiAAAU4oAABPYCAKmGM9vB9iAOmToAAIThgAA"
-                                "A8gIAAOKAAAD2AgAFhjKqwfYkDpk6ABCCUIf/gfAgCppA"
-                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
-                                "gDigAvo9gIA6YYyzTH2IA6ZOgAAhf6PreDiAAvpIAADRk"
-                                "62/CDh9AvqQbb8MPGCAM2BjIcRjpADsSAAAnTxggDNgbG"
-                                "9IfYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
-                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4MgwHx/"
-                                "G3g/wIAAY8Nb9DyAgLA4oAL6S4qyLWPDW/Q4gAL6SAAAS"
-                                "TxggABgY4ZEY8RduEgAACE8YIAzYGNvRDyAgABghFxQSA"
-                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
-                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlC1h8"
-                                "qAOmToAAIWOjDDx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
-                                "CR8CAOmOCEAIE6AACCQbbHklCH/4HwIAqaQAQAkv2EACD"
-                                "/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDV"
-                                "rnSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAg"
-                                "SDVjOSwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/h"
-                                "ON4SAAAWXx7G3h/o+t4f2TbeH+F43hINWMBLAMAAEGAAF"
-                                "iAmwAgSAAANXx8G3h/Y9t4f4TjeEgy+2ksAwABQIIAKJO"
-                                "fVLiTf1S8g9sANEgAADCAbbLkSCyBjIBtsuQ4oAAgSCx6"
-                                "9H9j23hIMv2Bf4TjeEv//+F/ZNt4S///2X+j63hINWypf"
-                                "6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CA"
-                                "OmOCEAIEgAJ2g="),  # 706372656C2E62696E00
+        "us2": base64.b64decode("PYCAM2GMTMR9iAOmToAAITxggDNgY29ESAAABXyIAqY4h"
+                                "ABQSAABSYhtseAsAwAAQYIAIIBtuug4gAAFOKAAAT2AgC"
+                                "phjPbwfYgDpk6AACE4YAAAPICAADigAAA9gIABYYyqsH2"
+                                "JA6ZOgAQglCH/4HwIAqaQAQAkv6EACHx+G3h8nyN4P6CA"
+                                "sH+j63hIAAAFfIgCpjiE/3A4oAMYPYCAOmGMs0x9iAOmT"
+                                "oAAIX+j63g4gAMYSAAA0ZOtvwg4fQMYkG2/DDxggDNgYy"
+                                "HEY6QA/EgAAJ09gIAzYYxvSH2JA6Z/w/N4f+T7eLuhAAi"
+                                "AAQAkfAgDpjghACBOgAQgfH8beDxggTNgYzqcPICAsGCE"
+                                "ARxIAABdf+P7eEuDILB8fxt4P8CAAGPDW/Q8gICwOKADG"
+                                "EuKsh1jw1v0OIADGEgAAEk8YIAAYGOGRGPEXchIAAAhPG"
+                                "CAM2Bjb0Q8gIAAYIRcYEgAAA1/4/t4SIM5OHyDIFBUhAG"
+                                "6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8"
+                                "fxt4fJ4jeD+ggDNjpQtYfKgDpk6AACFjoww8fGgDpn/j+"
+                                "3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAgkG2x5J"
+                                "Qh/1B8CAKmkAEAtL9BAAhIMu7pfHobeD/ggAA7wAAAO6E"
+                                "AIGPjXwR/pOt4OKAAAUg1a40sAwAAQIIA5H+j63g4gAAA"
+                                "OKAAAkg1ZPUsAwAAQYAAzDuDAB9XnAA0f6PreDiAAAA4o"
+                                "AAASDVk1SwDAABBgACsgG2y5H+E43g4oAAgSCx7PXx7G3"
+                                "h/o+t4f2TbeH+F43hINWLpLAMAAECBAFyAbbLsgJsAIIC"
+                                "7AERILHsRfHwbeEgy7jF/Y9t4f4TjeEgy+0UsAwABQIIA"
+                                "GEgy7i2Tn1S4k39UvIPbADRIAAAof2PbeEgy/W1IMu4Rg"
+                                "G2y7H+E43hILIFVgG2y5H9k23hILIFJf6PreEg1bIksHg"
+                                "AAQYIADH/IA6ZOgAAhf0PTeEgy7e27QQAIgAEAtHwIA6Y"
+                                "4IQCwSAAnSA=="),  # 6D6F642E72656C00
         # PAL
-        "eu":  base64.b64decode("PGCAM2Bjc3RIAAAFfIgCpjiEAFBIAAFJiG2woCwDAABBg"
-                                "gAggG25qDiAAAU4oAABPYCAKmGM+yB9iAOmToAAIThgAA"
-                                "A8gIAAOKAAAD2AgAFhjKqgfYkDpk6ABCCUIf/gfAgCppA"
-                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
-                                "gDigAvo9gIA6YYy30H2IA6ZOgAAhf6PreDiAAvpIAADRk"
-                                "629yDh9AvqQbb3MPGCAM2BjJfRjpADsSAAAnTxggDNgbH"
-                                "N4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
-                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4Mk8Hx/"
-                                "G3g/wIAAY8Nb9DyAgLA4oAL6S4q2sWPDW/Q4gAL6SAAAS"
-                                "TxggABgY4ZEY8RduEgAACE8YIAzYGNzdDyAgABghFxQSA"
-                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
-                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlD4h8"
-                                "qAOmToAAIWOjEGx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
-                                "CR8CAOmOCEAIE6AACCQbbCklCH/4HwIAqaQAQAkv2EACD"
-                                "/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDV"
-                                "vzSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAg"
-                                "SDVnaSwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/h"
-                                "ON4SAAAWXx7G3h/o+t4f2TbeH+F43hINWcxLAMAAEGAAF"
-                                "iAmwAgSAAANXx8G3h/Y9t4f4TjeEgy/5ksAwABQIIAKJO"
-                                "fVLiTf1S8g9sANEgAADCAbbGkSCyFvIBtsaQ4oAAgSCx/"
-                                "JH9j23hIMwGxf4TjeEv//+F/ZNt4S///2X+j63hINXDZf"
-                                "6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CA"
-                                "OmOCEAIEgAJ2g="),  # 706372656C2E62696E00
+        "eu":  base64.b64decode("PYCAM2GMUPR9iAOmToAAITxggDNgY3N0SAAABXyIAqY4h"
+                                "ABQSAABSYhtsKAsAwAAQYIAIIBtuag4gAAFOKAAAT2AgC"
+                                "phjPsgfYgDpk6AACE4YAAAPICAADigAAA9gIABYYyqoH2"
+                                "JA6ZOgAQglCH/4HwIAqaQAQAkv6EACHx+G3h8nyN4P6CA"
+                                "sH+j63hIAAAFfIgCpjiE/3A4oAMYPYCAOmGMt9B9iAOmT"
+                                "oAAIX+j63g4gAMYSAAA0ZOtvcg4fQMYkG29zDxggDNgYy"
+                                "X0Y6QA/EgAAJ09gIAzYYxzeH2JA6Z/w/N4f+T7eLuhAAi"
+                                "AAQAkfAgDpjghACBOgAQgfH8beDxggTNgYzqcPICAsGCE"
+                                "ARxIAABdf+P7eEuDJOB8fxt4P8CAAGPDW/Q8gICwOKADG"
+                                "EuKtqFjw1v0OIADGEgAAEk8YIAAYGOGRGPEXchIAAAhPG"
+                                "CAM2Bjc3Q8gIAAYIRcYEgAAA1/4/t4SIM5OHyDIFBUhAG"
+                                "6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8"
+                                "fxt4fJ4jeD+ggDNjpQ+IfKgDpk6AACFjoxBsfGgDpn/j+"
+                                "3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAgkG2wpJ"
+                                "Qh/1B8CAKmkAEAtL9BAAhIMvMZfHobeD/ggAA7wAAAO6E"
+                                "AIGPjXwR/pOt4OKAAAUg1b70sAwAAQIIA5H+j63g4gAAA"
+                                "OKAAAkg1aSUsAwAAQYAAzDuDAB9XnAA0f6PreDiAAAA4o"
+                                "AAASDVpBSwDAABBgACsgG2xpH+E43g4oAAgSCx/bXx7G3"
+                                "h/o+t4f2TbeH+F43hINWcZLAMAAECBAFyAbbGsgJsAIIC"
+                                "7AERILH9BfHwbeEgy8mF/Y9t4f4TjeEgy/3UsAwABQIIA"
+                                "GEgy8l2Tn1S4k39UvIPbADRIAAAof2PbeEgzAZ1IMvJBg"
+                                "G2xrH+E43hILIWFgG2xpH9k23hILIV5f6PreEg1cLksHg"
+                                "AAQYIADH/IA6ZOgAAhf0PTeEgy8h27QQAIgAEAtHwIA6Y"
+                                "4IQCwSAAnSA=="),  # 6D6F642E72656C00
         # JP
-        "jp":  base64.b64decode("PGCAM2BjimRIAAAFfIgCpjiEAFBIAAFJiG2x4CwDAABBg"
-                                "gAggG262DiAAAU4oAABPYCAK2GMEhB9iAOmToAAIThgAA"
-                                "A8gIAAOKAAAD2AgAFhjKssfYkDpk6ABCCUIf/gfAgCppA"
-                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
-                                "gDigAvo9gIA6YYzOBH2IA6ZOgAAhf6PreDiAAvpIAADRk"
-                                "62++Dh9AvqQbb78PGCAM2BjPORjpADsSAAAnTxggDNgbI"
-                                "pofYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
-                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4M74Hx/"
-                                "G3g/wIAAY8Nb9DyAgLA4oAL6S4rM5WPDW/Q4gAL6SAAAS"
-                                "TxggABgY4ZEY8RduEgAACE8YIAzYGOKZDyAgABghFxQSA"
-                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
-                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlJnh8"
-                                "qAOmToAAIWOjJ1x8aAOmf+P7eH/E83hOgAAhu6EACIABA"
-                                "CR8CAOmOCEAIE6AACCQbbHklCH/4HwIAqaQAQAkv2EACD"
-                                "/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDW"
-                                "GVSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAg"
-                                "SDV98SwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/h"
-                                "ON4SAAAWXx7G3h/o+t4f2TbeH+F43hINX25LAMAAEGAAF"
-                                "iAmwAgSAAANXx8G3h/Y9t4f4TjeEgzFoksAwABQIIAKJO"
-                                "fVLiTf1S8g9sANEgAADCAbbLkSCycrIBtsuQ4oAAgSCyW"
-                                "FH9j23hIMxihf4TjeEv//+F/ZNt4S///2X+j63hINYdhf"
-                                "6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CA"
-                                "OmOCEAIEgAJ2g="),  # 706372656C2E62696E00
+        "jp":  base64.b64decode("PYCAM2GMZ+R9iAOmToAAITxggDNgY4pkSAAABXyIAqY4h"
+                                "ABQSAABSYhtseAsAwAAQYIAIIBtutg4gAAFOKAAAT2AgC"
+                                "thjBIQfYgDpk6AACE4YAAAPICAADigAAA9gIABYYyrLH2"
+                                "JA6ZOgAQglCH/4HwIAqaQAQAkv6EACHx+G3h8nyN4P6CA"
+                                "sH+j63hIAAAFfIgCpjiE/3A4oAMYPYCAOmGMzgR9iAOmT"
+                                "oAAIX+j63g4gAMYSAAA0ZOtvvg4fQMYkG2+/DxggDNgYz"
+                                "zkY6QA/EgAAJ09gIAzYYyKaH2JA6Z/w/N4f+T7eLuhAAi"
+                                "AAQAkfAgDpjghACBOgAQgfH8beDxggTNgYzqcPICAsGCE"
+                                "ARxIAABdf+P7eEuDO9B8fxt4P8CAAGPDW/Q8gICwOKADG"
+                                "EuKzNVjw1v0OIADGEgAAEk8YIAAYGOGRGPEXchIAAAhPG"
+                                "CAM2BjimQ8gIAAYIRcYEgAAA1/4/t4SIM5OHyDIFBUhAG"
+                                "6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8"
+                                "fxt4fJ4jeD+ggDNjpSZ4fKgDpk6AACFjoydcfGgDpn/j+"
+                                "3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAgkG2x5J"
+                                "Qh/1B8CAKmkAEAtL9BAAhIMwoJfHobeD/ggAA7wAAAO6E"
+                                "AIGPjXwR/pOt4OKAAAUg1hkUsAwAAQIIA5H+j63g4gAAA"
+                                "OKAAAkg1f60sAwAAQYAAzDuDAB9XnAA0f6PreDiAAAA4o"
+                                "AAASDV/jSwDAABBgACsgG2y5H+E43g4oAAgSCyWXXx7G3"
+                                "h/o+t4f2TbeH+F43hINX2hLAMAAECBAFyAbbLsgJsAIIC"
+                                "7AERILJYxfHwbeEgzCVF/Y9t4f4TjeEgzFmUsAwABQIIA"
+                                "GEgzCU2Tn1S4k39UvIPbADRIAAAof2PbeEgzGI1IMwkxg"
+                                "G2y7H+E43hILJx1gG2y5H9k23hILJxpf6PreEg1h0EsHg"
+                                "AAQYIADH/IA6ZOgAAhf0PTeEgzCQ27QQAIgAEAtHwIA6Y"
+                                "4IQCwSAAnSA=="),  # 6D6F642E72656C00
     },
     '2': {
         # NA 1.0
-        "us0": base64.b64decode("PGCANGBjxXRIAAAFfIgCpjiEAFBIAAFJiG2yYCwDAABBg"
-                                "gAggG27SDiAAAU4oAABPYCAKmGM/Nx9iAOmToAAIThgAA"
-                                "A8gIAAOKAAAD2AgAFhjKn4fYkDpk6ABCCUIf/gfAgCppA"
-                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
-                                "gDigAw49gIA8YYwJFH2IA6ZOgAAhf6PreDiAAw5IAADRk"
-                                "62/kDh9Aw6Qbb+UPGCANGBjd/RjpADsSAAAnTxggDRgbM"
-                                "V4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
-                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4R28Hx/"
-                                "G3g/wIAAY8Nb9DyAgLA4oAMOS4wH9WPDW/Q4gAMOSAAAS"
-                                "TxggABgY4ZEY8RduEgAACE8YIA0YGPFdDyAgABghFxQSA"
-                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
-                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CANGOlYYh8"
-                                "qAOmToAAIWOjYmx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
-                                "CR8CAOmOCEAIE6AACCQbbJklCH/UHwIAqaQAQC0v2EACD"
-                                "/ggAA7wAAAO6EAIGPjXvh/pOt4OKAAAUg2wW0sAwAAQII"
-                                "A+IBts2Q4gAAgOKAAIEgt0b18ext4f6PreH9k23g4oAAg"
-                                "SDa5ASwDAABAgQCog5sAADucAB9XnAA0gG2zZH9k23hIL"
-                                "dgVgG2zZH+E43g4oAAgSC3ReXx7G3h/o+t4f2TbeH+F43"
-                                "hINri9LAMAAECBAGSAbbNsgJsAIIC7AERILdFNfHwbeH9"
-                                "j23h/hON4SDRRjSwDAAFAggAogLsASHy7KFCAbbNkf2Tb"
-                                "eEgt2ZGTn1S4k39UvIPbADRIAAAkf2PbeEg0U52AbbNsf"
-                                "4TjeEgt14mAbbNkf2TbeEgt131/o+t4SDbCVSweAABBgg"
-                                "AMf8gDpk6AACG7YQAIgAEAtHwIA6Y4IQCwSAAnVA=="),
+        "us0": base64.b64decode("PYCANGGMovR9iAOmToAAITxggDRgY8V0SAAABXyIAqY4h"
+                                "ABQSAABSYhtsmAsAwAAQYIAIIBtu0g4gAAFOKAAAT2AgC"
+                                "phjPzcfYgDpk6AACE4YAAAPICAADigAAA9gIABYYyp+H2"
+                                "JA6ZOgAQglCH/4HwIAqaQAQAkv6EACHx+G3h8nyN4P6CA"
+                                "sH+j63hIAAAFfIgCpjiE/3A4oAMsPYCAPGGMCRR9iAOmT"
+                                "oAAIX+j63g4gAMsSAAA0ZOtv5A4fQMskG2/lDxggDRgY3"
+                                "f0Y6QA/EgAAJ09gIA0YYzFeH2JA6Z/w/N4f+T7eLuhAAi"
+                                "AAQAkfAgDpjghACBOgAQgfH8beDxggTNgYzqcPICAsGCE"
+                                "ARxIAABdf+P7eEuEduB8fxt4P8CAAGPDW/Q8gICwOKADL"
+                                "EuMB+Vjw1v0OIADLEgAAEk8YIAAYGOGRGPEXchIAAAhPG"
+                                "CANGBjxXQ8gIAAYIRcYEgAAA1/4/t4SIM5OHyDIFBUhAG"
+                                "6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8"
+                                "fxt4fJ4jeD+ggDRjpWGIfKgDpk6AACFjo2JsfGgDpn/j+"
+                                "3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAgkG2yZJ"
+                                "Qh/1B8CAKmkAEAtL9BAAhINEUZfHobeD/ggAA7wAAAO6E"
+                                "AIGPjXxh/pOt4OKAAAUg2wVUsAwAAQIIA+H+j63g4gAAA"
+                                "OKAAAkg2ur0sAwAAQYAA4DuDAB9XnAA0f6PreDiAAAA4o"
+                                "AAASDa6nSwDAABBgADAgG2zZH+E43g4oAAgSC3RbXx7G3"
+                                "h/o+t4f2TbeH+F43hINrixLAMAAECBAHCAbbNsgJsAIIC"
+                                "7AERILdFBfHwbeEg0RGF/Y9t4f4TjeEg0UX0sAwABQIIA"
+                                "LEg0RF2AuwBIfLsoUIBts2R/ZNt4SC3ZfZOfVLiTf1S8g"
+                                "9sANEgAACh/Y9t4SDRTiUg0RC2AbbNsf4TjeEgt13GAbb"
+                                "Nkf2TbeEgt12V/o+t4SDbCPSweAABBggAMf8gDpk6AACF"
+                                "/Q9N4SDRECbtBAAiAAQC0fAgDpjghALBIACc0"),
         # NA 1.2
-        "us2": base64.b64decode("PGCAM2Bjb0RIAAAFfIgCpjiEAFBIAAFJiG2x4CwDAABBg"
-                                "gAggG266DiAAAU4oAABPYCAKmGM9vB9iAOmToAAIThgAA"
-                                "A8gIAAOKAAAD2AgAFhjKqwfYkDpk6ABCCUIf/gfAgCppA"
-                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
-                                "gDigAw49gIA6YYyzTH2IA6ZOgAAhf6PreDiAAw5IAADRk"
-                                "62/CDh9Aw6Qbb8MPGCAM2BjIcRjpADsSAAAnTxggDNgbG"
-                                "9IfYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
-                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4MgwHx/"
-                                "G3g/wIAAY8Nb9DyAgLA4oAMOS4qyLWPDW/Q4gAMOSAAAS"
-                                "TxggABgY4ZEY8RduEgAACE8YIAzYGNvRDyAgABghFxQSA"
-                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
-                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlC1h8"
-                                "qAOmToAAIWOjDDx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
-                                "CR8CAOmOCEAIE6AACCQbbHklCH/UHwIAqaQAQC0v2EACD"
-                                "/ggAA7wAAAO6EAIGPjXvh/pOt4OKAAAUg1a6UsAwAAQII"
-                                "A+IBtsuQ4gAAgOKAAIEgse418ext4f6PreH9k23g4oAAg"
-                                "SDVjOSwDAABAgQCog5sAADucAB9XnAA0gG2y5H9k23hIL"
-                                "IHlgG2y5H+E43g4oAAgSCx7SXx7G3h/o+t4f2TbeH+F43"
-                                "hINWL1LAMAAECBAGSAbbLsgJsAIIC7AERILHsdfHwbeH9"
-                                "j23h/hON4SDL7XSwDAAFAggAogLsASHy7KFCAbbLkf2Tb"
-                                "eEgsg2GTn1S4k39UvIPbADRIAAAkf2PbeEgy/W2AbbLsf"
-                                "4TjeEgsgVmAbbLkf2TbeEgsgU1/o+t4SDVsjSweAABBgg"
-                                "AMf8gDpk6AACG7YQAIgAEAtHwIA6Y4IQCwSAAnVA=="),
+        "us2": base64.b64decode("PYCAM2GMTMR9iAOmToAAITxggDNgY29ESAAABXyIAqY4h"
+                                "ABQSAABSYhtseAsAwAAQYIAIIBtuug4gAAFOKAAAT2AgC"
+                                "phjPbwfYgDpk6AACE4YAAAPICAADigAAA9gIABYYyqsH2"
+                                "JA6ZOgAQglCH/4HwIAqaQAQAkv6EACHx+G3h8nyN4P6CA"
+                                "sH+j63hIAAAFfIgCpjiE/3A4oAMsPYCAOmGMs0x9iAOmT"
+                                "oAAIX+j63g4gAMsSAAA0ZOtvwg4fQMskG2/DDxggDNgYy"
+                                "HEY6QA/EgAAJ09gIAzYYxvSH2JA6Z/w/N4f+T7eLuhAAi"
+                                "AAQAkfAgDpjghACBOgAQgfH8beDxggTNgYzqcPICAsGCE"
+                                "ARxIAABdf+P7eEuDILB8fxt4P8CAAGPDW/Q8gICwOKADL"
+                                "EuKsh1jw1v0OIADLEgAAEk8YIAAYGOGRGPEXchIAAAhPG"
+                                "CAM2Bjb0Q8gIAAYIRcYEgAAA1/4/t4SIM5OHyDIFBUhAG"
+                                "6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8"
+                                "fxt4fJ4jeD+ggDNjpQtYfKgDpk6AACFjoww8fGgDpn/j+"
+                                "3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAgkG2x5J"
+                                "Qh/1B8CAKmkAEAtL9BAAhIMu7pfHobeD/ggAA7wAAAO6E"
+                                "AIGPjXxh/pOt4OKAAAUg1a40sAwAAQIIA+H+j63g4gAAA"
+                                "OKAAAkg1ZPUsAwAAQYAA4DuDAB9XnAA0f6PreDiAAAA4o"
+                                "AAASDVk1SwDAABBgADAgG2y5H+E43g4oAAgSCx7PXx7G3"
+                                "h/o+t4f2TbeH+F43hINWLpLAMAAECBAHCAbbLsgJsAIIC"
+                                "7AERILHsRfHwbeEgy7jF/Y9t4f4TjeEgy+00sAwABQIIA"
+                                "LEgy7i2AuwBIfLsoUIBtsuR/ZNt4SCyDTZOfVLiTf1S8g"
+                                "9sANEgAACh/Y9t4SDL9WUgy7f2AbbLsf4TjeEgsgUGAbb"
+                                "Lkf2TbeEgsgTV/o+t4SDVsdSweAABBggAMf8gDpk6AACF"
+                                "/Q9N4SDLt2btBAAiAAQC0fAgDpjghALBIACc0"),
         # PAL
-        "eu":  base64.b64decode("PGCAM2Bjc3RIAAAFfIgCpjiEAFBIAAFJiG2woCwDAABBg"
-                                "gAggG25qDiAAAU4oAABPYCAKmGM+yB9iAOmToAAIThgAA"
-                                "A8gIAAOKAAAD2AgAFhjKqgfYkDpk6ABCCUIf/gfAgCppA"
-                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
-                                "gDigAw49gIA6YYy30H2IA6ZOgAAhf6PreDiAAw5IAADRk"
-                                "629yDh9Aw6Qbb3MPGCAM2BjJfRjpADsSAAAnTxggDNgbH"
-                                "N4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
-                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4Mk8Hx/"
-                                "G3g/wIAAY8Nb9DyAgLA4oAMOS4q2sWPDW/Q4gAMOSAAAS"
-                                "TxggABgY4ZEY8RduEgAACE8YIAzYGNzdDyAgABghFxQSA"
-                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
-                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlD4h8"
-                                "qAOmToAAIWOjEGx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
-                                "CR8CAOmOCEAIE6AACCQbbCklCH/UHwIAqaQAQC0v2EACD"
-                                "/ggAA7wAAAO6EAIGPjXvh/pOt4OKAAAUg1b9UsAwAAQII"
-                                "A+IBtsaQ4gAAgOKAAIEgsf718ext4f6PreH9k23g4oAAg"
-                                "SDVnaSwDAABAgQCog5sAADucAB9XnAA0gG2xpH9k23hIL"
-                                "IYVgG2xpH+E43g4oAAgSCx/eXx7G3h/o+t4f2TbeH+F43"
-                                "hINWclLAMAAECBAGSAbbGsgJsAIIC7AERILH9NfHwbeH9"
-                                "j23h/hON4SDL/jSwDAAFAggAogLsASHy7KFCAbbGkf2Tb"
-                                "eEgsh5GTn1S4k39UvIPbADRIAAAkf2PbeEgzAZ2AbbGsf"
-                                "4TjeEgshYmAbbGkf2TbeEgshX1/o+t4SDVwvSweAABBgg"
-                                "AMf8gDpk6AACG7YQAIgAEAtHwIA6Y4IQCwSAAnVA=="),
+        "eu":  base64.b64decode("PYCAM2GMUPR9iAOmToAAITxggDNgY3N0SAAABXyIAqY4h"
+                                "ABQSAABSYhtsKAsAwAAQYIAIIBtuag4gAAFOKAAAT2AgC"
+                                "phjPsgfYgDpk6AACE4YAAAPICAADigAAA9gIABYYyqoH2"
+                                "JA6ZOgAQglCH/4HwIAqaQAQAkv6EACHx+G3h8nyN4P6CA"
+                                "sH+j63hIAAAFfIgCpjiE/3A4oAMsPYCAOmGMt9B9iAOmT"
+                                "oAAIX+j63g4gAMsSAAA0ZOtvcg4fQMskG29zDxggDNgYy"
+                                "X0Y6QA/EgAAJ09gIAzYYxzeH2JA6Z/w/N4f+T7eLuhAAi"
+                                "AAQAkfAgDpjghACBOgAQgfH8beDxggTNgYzqcPICAsGCE"
+                                "ARxIAABdf+P7eEuDJOB8fxt4P8CAAGPDW/Q8gICwOKADL"
+                                "EuKtqFjw1v0OIADLEgAAEk8YIAAYGOGRGPEXchIAAAhPG"
+                                "CAM2Bjc3Q8gIAAYIRcYEgAAA1/4/t4SIM5OHyDIFBUhAG"
+                                "6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8"
+                                "fxt4fJ4jeD+ggDNjpQ+IfKgDpk6AACFjoxBsfGgDpn/j+"
+                                "3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAgkG2wpJ"
+                                "Qh/1B8CAKmkAEAtL9BAAhIMvMZfHobeD/ggAA7wAAAO6E"
+                                "AIGPjXxh/pOt4OKAAAUg1b70sAwAAQIIA+H+j63g4gAAA"
+                                "OKAAAkg1aSUsAwAAQYAA4DuDAB9XnAA0f6PreDiAAAA4o"
+                                "AAASDVpBSwDAABBgADAgG2xpH+E43g4oAAgSCx/bXx7G3"
+                                "h/o+t4f2TbeH+F43hINWcZLAMAAECBAHCAbbGsgJsAIIC"
+                                "7AERILH9BfHwbeEgy8mF/Y9t4f4TjeEgy/30sAwABQIIA"
+                                "LEgy8l2AuwBIfLsoUIBtsaR/ZNt4SCyHfZOfVLiTf1S8g"
+                                "9sANEgAACh/Y9t4SDMBiUgy8i2AbbGsf4TjeEgshXGAbb"
+                                "Gkf2TbeEgshWV/o+t4SDVwpSweAABBggAMf8gDpk6AACF"
+                                "/Q9N4SDLyCbtBAAiAAQC0fAgDpjghALBIACc0"),
         # JP
-        "jp":  base64.b64decode("PGCAM2BjimRIAAAFfIgCpjiEAFBIAAFJiG2x4CwDAABBg"
-                                "gAggG262DiAAAU4oAABPYCAK2GMEhB9iAOmToAAIThgAA"
-                                "A8gIAAOKAAAD2AgAFhjKssfYkDpk6ABCCUIf/gfAgCppA"
-                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
-                                "gDigAw49gIA6YYzOBH2IA6ZOgAAhf6PreDiAAw5IAADRk"
-                                "62++Dh9Aw6Qbb78PGCAM2BjPORjpADsSAAAnTxggDNgbI"
-                                "pofYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
-                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4M74Hx/"
-                                "G3g/wIAAY8Nb9DyAgLA4oAMOS4rM5WPDW/Q4gAMOSAAAS"
-                                "TxggABgY4ZEY8RduEgAACE8YIAzYGOKZDyAgABghFxQSA"
-                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
-                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlJnh8"
-                                "qAOmToAAIWOjJ1x8aAOmf+P7eH/E83hOgAAhu6EACIABA"
-                                "CR8CAOmOCEAIE6AACCQbbHklCH/UHwIAqaQAQC0v2EACD"
-                                "/ggAA7wAAAO6EAIGPjXvh/pOt4OKAAAUg1hl0sAwAAQII"
-                                "A+IBtsuQ4gAAgOKAAIEgslq18ext4f6PreH9k23g4oAAg"
-                                "SDV98SwDAABAgQCog5sAADucAB9XnAA0gG2y5H9k23hIL"
-                                "J0FgG2y5H+E43g4oAAgSCyWaXx7G3h/o+t4f2TbeH+F43"
-                                "hINX2tLAMAAECBAGSAbbLsgJsAIIC7AERILJY9fHwbeH9"
-                                "j23h/hON4SDMWfSwDAAFAggAogLsASHy7KFCAbbLkf2Tb"
-                                "eEgsnoGTn1S4k39UvIPbADRIAAAkf2PbeEgzGI2AbbLsf"
-                                "4TjeEgsnHmAbbLkf2TbeEgsnG1/o+t4SDWHRSweAABBgg"
-                                "AMf8gDpk6AACG7YQAIgAEAtHwIA6Y4IQCwSAAnVA=="),
+        "jp":  base64.b64decode("PYCAM2GMZ+R9iAOmToAAITxggDNgY4pkSAAABXyIAqY4h"
+                                "ABQSAABSYhtseAsAwAAQYIAIIBtutg4gAAFOKAAAT2AgC"
+                                "thjBIQfYgDpk6AACE4YAAAPICAADigAAA9gIABYYyrLH2"
+                                "JA6ZOgAQglCH/4HwIAqaQAQAkv6EACHx+G3h8nyN4P6CA"
+                                "sH+j63hIAAAFfIgCpjiE/3A4oAMsPYCAOmGMzgR9iAOmT"
+                                "oAAIX+j63g4gAMsSAAA0ZOtvvg4fQMskG2+/DxggDNgYz"
+                                "zkY6QA/EgAAJ09gIAzYYyKaH2JA6Z/w/N4f+T7eLuhAAi"
+                                "AAQAkfAgDpjghACBOgAQgfH8beDxggTNgYzqcPICAsGCE"
+                                "ARxIAABdf+P7eEuDO9B8fxt4P8CAAGPDW/Q8gICwOKADL"
+                                "EuKzNVjw1v0OIADLEgAAEk8YIAAYGOGRGPEXchIAAAhPG"
+                                "CAM2BjimQ8gIAAYIRcYEgAAA1/4/t4SIM5OHyDIFBUhAG"
+                                "6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8"
+                                "fxt4fJ4jeD+ggDNjpSZ4fKgDpk6AACFjoydcfGgDpn/j+"
+                                "3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAgkG2x5J"
+                                "Qh/1B8CAKmkAEAtL9BAAhIMwoJfHobeD/ggAA7wAAAO6E"
+                                "AIGPjXxh/pOt4OKAAAUg1hkUsAwAAQIIA+H+j63g4gAAA"
+                                "OKAAAkg1f60sAwAAQYAA4DuDAB9XnAA0f6PreDiAAAA4o"
+                                "AAASDV/jSwDAABBgADAgG2y5H+E43g4oAAgSCyWXXx7G3"
+                                "h/o+t4f2TbeH+F43hINX2hLAMAAECBAHCAbbLsgJsAIIC"
+                                "7AERILJYxfHwbeEgzCVF/Y9t4f4TjeEgzFm0sAwABQIIA"
+                                "LEgzCU2AuwBIfLsoUIBtsuR/ZNt4SCyebZOfVLiTf1S8g"
+                                "9sANEgAACh/Y9t4SDMYeUgzCR2AbbLsf4TjeEgsnGGAbb"
+                                "Lkf2TbeEgsnFV/o+t4SDWHLSweAABBggAMf8gDpk6AACF"
+                                "/Q9N4SDMI+btBAAiAAQC0fAgDpjghALBIACc0"),
     }
 }
 
@@ -1190,7 +1198,7 @@ def update_checksum(data: bytes, fileNumber: int):
     return bytes(data)
 
 
-def patch_file(data: bytes, fileNumber: int, version: str, rel_name: str = "pcrel.bin", bin_data_version='1', file_name=None):
+def patch_file(data: bytes, fileNumber: int, version: str, rel_name: str = "mod.rel", bin_data_version='1', file_name=None):
     data = bytearray(data)
 
     offsetFile0 = (fileNumber - 1) * 0xA94 + 0x8
@@ -1265,64 +1273,71 @@ def generate_zeldaTp(save_bin: SaveBin):
 # | Main script |
 # +-------------+
 
-
-def parseFileNumber(string):
-    val = int(string)
-    if val < 1 or val > 3:
-        raise argparse.ArgumentTypeError(
-            "File number can only have integer values between 1 and 3")
-    return val
-
-
-def parseFileName(string):
-    if len(string) > 12:
-        raise argparse.ArgumentTypeError(
-            f"File name is too long (12 characters max; got {len(string)})")
-    return string
-
-
-def parseSaveFileName(string):
-    if len(string) > 31:
-        raise argparse.ArgumentTypeError(
-            f"Savefile name is too long (31 characters max; got {len(string)})")
-    return string
-
-
-def directoryPathParser(string):
-    if os.path.exists(string):
-        if os.path.isfile(string):
-            raise argparse.ArgumentTypeError(
-                "The output has to be an existing directory or a new directory; Got a file")
-    return string
-
-
-def filePathParser(string):
-    if os.path.exists(string):
-        if not os.path.isfile(string):
-            raise argparse.ArgumentTypeError(
-                "The output has to be a file; Got a directory")
-    return string
-
-
-def updateMetaData(save_bin: SaveBin, meta: Dict[str, Any]):
-    save_bin.header.tid = meta["tid"] if "tid" in meta else save_bin.header.tid
-    save_bin.header.permissions = meta["permissions"] if "permissions" in meta else save_bin.header.permissions
-    save_bin.bkheader.ngid = meta["ngid"] if "ngid" in meta else save_bin.bkheader.ngid
-    save_bin.bkheader.mac_address = struct.pack(">Q", meta["mac_address"])[
-        2:] if "mac_address" in meta else save_bin.bkheader.mac_address
-    if "files" in meta:
-        for i in range(len(save_bin.files)):
-            try:
-                idx = [file["path"]
-                       for file in meta["files"]].index(save_bin.files[i].path)
-                save_bin.files[i].attributes = meta["files"][idx]["attributes"] if "attributes" in meta["files"][idx] else save_bin.files[i].attributes
-                save_bin.files[i].mode = meta["files"][idx]["mode"] if "mode" in meta["files"][idx] else save_bin.files[i].mode
-                save_bin.files[i].node_type = meta["files"][idx]["type"] if "type" in meta["files"][idx] else save_bin.files[i].node_type
-            except ValueError as err:
-                continue
-
-
 def main():
+
+    # Function definitions used in the argument parser
+    # (shouldn't be defined in the root scope, since there
+    # is no need to make them available when imported as library)
+
+    def parseFileNumber(string):
+        val = int(string)
+        if val < 1 or val > 3:
+            raise argparse.ArgumentTypeError(
+                "File number can only have integer values between 1 and 3")
+        return val
+
+
+    def parseFileName(string):
+        if len(string) > 12:
+            raise argparse.ArgumentTypeError(
+                f"File name is too long (12 characters max; got {len(string)})")
+        return string
+
+
+    def parseSaveFileName(string):
+        if len(string) > 31:
+            raise argparse.ArgumentTypeError(
+                f"Savefile name is too long (31 characters max; got {len(string)})")
+        return string
+
+
+    def directoryPathParser(string):
+        if os.path.exists(string):
+            if os.path.isfile(string):
+                raise argparse.ArgumentTypeError(
+                    "The output has to be an existing directory or a new directory; Got a file")
+        return string
+
+
+    def filePathParser(string):
+        if os.path.exists(string):
+            if not os.path.isfile(string):
+                raise argparse.ArgumentTypeError(
+                    "The output has to be a file; Got a directory")
+        return string
+
+    # Functions only used in the main function
+    # (shouldn't be defined in the root scope, since there
+    # is no need to make them available when imported as library)
+
+    def updateMetaData(save_bin: SaveBin, meta: Dict[str, Any]):
+        save_bin.header.tid = meta["tid"] if "tid" in meta else save_bin.header.tid
+        save_bin.header.permissions = meta["permissions"] if "permissions" in meta else save_bin.header.permissions
+        save_bin.bkheader.ngid = meta["ngid"] if "ngid" in meta else save_bin.bkheader.ngid
+        save_bin.bkheader.mac_address = struct.pack(">Q", meta["mac_address"])[
+            2:] if "mac_address" in meta else save_bin.bkheader.mac_address
+        if "files" in meta:
+            for i in range(len(save_bin.files)):
+                try:
+                    idx = [file["path"]
+                        for file in meta["files"]].index(save_bin.files[i].path)
+                    save_bin.files[i].attributes = meta["files"][idx]["attributes"] if "attributes" in meta["files"][idx] else save_bin.files[i].attributes
+                    save_bin.files[i].mode = meta["files"][idx]["mode"] if "mode" in meta["files"][idx] else save_bin.files[i].mode
+                    save_bin.files[i].node_type = meta["files"][idx]["type"] if "type" in meta["files"][idx] else save_bin.files[i].node_type
+                except ValueError as err:
+                    continue
+
+
     parser = argparse.ArgumentParser(
         sys.argv[0], description="Tool to pack/unpack Wii saves & inject REL modules.")
     parser.add_argument("-v", "--verbose", action="count",
@@ -1331,14 +1346,14 @@ def main():
                         help="prevents output to the console", default=False)
     parser.add_argument("-V", "--version", action="version", version=VERSION)
     subparsers = parser.add_subparsers(
-        dest="command", metavar="command", help="Available commands are: generate, inject, patch, unpack, pack, meta, format, banner, files")
+        dest="command", metavar="command", help="Available commands are: generate, inject, patch, unpack, pack, meta, banner, files")
     # Generate
     gen_parser = subparsers.add_parser(
         "generate", description="Generate a new save file", help="Generate a new save file")
     gen_parser.add_argument("-i", "--index", action="append", type=parseFileNumber,
                             help="file number to inject the custom rel into (1 to 3)")
     gen_parser.add_argument("-n", "--name", type=parseFileName,
-                            help="overwrite the name of the internal REL file that will be loaded", default="pcrel.bin")
+                            help="overwrite the name of the internal REL file that will be loaded", default="mod.rel")
     gen_parser.add_argument("rel", type=argparse.FileType(
         'rb'), help="Path to the REL module to pack")
     gen_parser.add_argument("banner", type=argparse.FileType(
@@ -1361,7 +1376,7 @@ def main():
     inj_parser.add_argument("-i", "--index", action="append", type=parseFileNumber,
                             help="file number to inject the custom rel into (1 to 3)")
     inj_parser.add_argument("-n", "--name", type=parseFileName,
-                            help="overwrite the name of the internal REL file that will be loaded", default="pcrel.bin")
+                            help="overwrite the name of the internal REL file that will be loaded", default="mod.rel")
     inj_parser.add_argument("rel", type=argparse.FileType(
         'rb'), help="Path to the REL module to pack")
     inj_parser.add_argument("save", type=argparse.FileType(
@@ -1386,7 +1401,7 @@ def main():
     patch_parser.add_argument("-i", "--index", action="append", type=parseFileNumber,
                               help="file number to inject the custom rel into (1 to 3)")
     patch_parser.add_argument("-n", "--name", type=parseFileName,
-                              help="overwrite the name of the internal REL file that will be loaded", default="pcrel.bin")
+                              help="overwrite the name of the internal REL file that will be loaded", default="mod.rel")
     patch_parser.add_argument("file", type=argparse.FileType(
         'rb'), help="The zeldaTp.dat file to patch")
     patch_parser.add_argument(
@@ -1428,13 +1443,6 @@ def main():
         'rb'), help="Save file to extract the metadata from")
     meta_parser.add_argument("out", type=argparse.FileType(
         'w'), help="Path the the file where to write the metadata (JSON format)")
-    # Format
-    format_parser = subparsers.add_parser(
-        "format", description="Format a rel file to make it compatible with the loader", help="Format a rel file to make it compatible with the loader")
-    format_parser.add_argument("rel", type=argparse.FileType(
-        'rb'), help="Path to the REL module to format")
-    format_parser.add_argument(
-        "out", type=str, help="Where to write the patched file")
     # Banner
     banner_parser = subparsers.add_parser(
         "banner", description="Extract banner from save file", help="Extract banner from save file")
@@ -1474,7 +1482,7 @@ def main():
     help_parser = subparsers.add_parser(
         "help", description="Get a help guide for a command", help="Get a help guide for a command")
     help_parser.add_argument("cmd", choices=[
-                             "generate", "inject", "pack", "unpack", "patch", "meta", "format", "banner", "files", "help"], help="A command you need help with", nargs='?')
+                             "generate", "inject", "pack", "unpack", "patch", "meta", "banner", "files", "help"], help="A command you need help with", nargs='?')
 
     args = parser.parse_args()
 
@@ -1485,7 +1493,7 @@ def main():
         sys.exit(0)
 
     parsers = {"generate": gen_parser, "inject": inj_parser, "patch": patch_parser,
-               "pack": pack_parser, "unpack": unpack_parser, "help": help_parser, "meta": meta_parser, "format": format_parser, "banner": banner_parser, "files": files_parser}
+               "pack": pack_parser, "unpack": unpack_parser, "help": help_parser, "meta": meta_parser, "banner": banner_parser, "files": files_parser}
 
     if args.command == "help":
         if not args.cmd is None:
@@ -1528,7 +1536,7 @@ def main():
             save_bin = SaveBin.generate(banner, args.game_version)
         generate_zeldaTp(save_bin)
         logging.debug(f"{save_bin}")
-    elif args.command in ["pack", "patch", "format"]:
+    elif args.command in ["pack", "patch"]:
         # We don't need any save file
         pass
     else:
@@ -1546,13 +1554,10 @@ def main():
     # Phase 2.3: Load and process the rel file (if needed)
 
     rel_bin = None
-    if args.command in ["inject", "generate", "format"]:
-        # Format the rel file
+    if args.command in ["inject", "generate"]:
+        # Load the rel file
         with args.rel as rel:
-            rel_data = rel.read()
-        rel_bin = struct.pack('>I', len(rel_data)) + bytes(0x1C) + rel_data
-        size = len(rel_bin)
-        logging.info(f"REL file loaded ({size = })")
+            rel_bin = rel.read()
 
     # Phase 3: Execute the command and save the results
 
@@ -1567,7 +1572,7 @@ def main():
             args.game_version = TIDS[save_bin.header.tid]
         logging.info(
             f'Game ID: {save_bin.header.tid >> 32:08x}-{struct.pack(">I", save_bin.header.tid & 0xffffffff).decode()}')
-        save_bin.add_file("pcrel.bin", rel_bin)
+        save_bin.add_file(args.name, rel_bin)
         zeldaTp_idx = find_zeldaTp_idx(save_bin)
         if not zeldaTp_idx is None:
             for file_idx in args.index:
@@ -1650,10 +1655,6 @@ def main():
                 zeldaTp_data, file_idx, args.game_version, args.name, args.loader_version, args.file_name))
         out = open(args.out, 'wb')
         out.write(zeldaTp_data)
-        out.close()
-    elif args.command == "format":
-        out = open(args.out, 'wb')
-        out.write(rel_bin)
         out.close()
     elif args.command == "banner":
         out = open(args.out, 'wb')
