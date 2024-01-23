@@ -100,7 +100,6 @@ restgpr_x.s
 linking ... REL.us.elf
 output ... REL.us.rel
 packing ... REL.us.gci
-
 ```
 The `REL.us.gci` (`REL.wus0.bin` for wii) (other versions are: `jp`, `eu`, `wus0`, `wus2`, `wjp`, and `weu`, as well as two other build target `gcn` and `wii` which build all the version for the specified platform) file is now containing our custom REL. Load it with the REL Loader cheat or a hacked save file that contains the loader, both of which can be found on the wiki [REL Loader](//wiki.tprandomizer.com/index.php?title=REL_Loader) page.
 
