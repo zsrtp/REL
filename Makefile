@@ -271,14 +271,8 @@ ifeq ($(PLATFORM),gcn)
 else ifeq ($(PLATFORM),wii)
 ifndef SKIP_PACK
 %.bin: %.rel
-	@echo formating ... $(notdir $<)
-	@$(NANDPACK) format $< pcrel.bin
 	@echo packing ... $(notdir $@)
 	@$(NANDPACK) generate -g $(PACKVER) -l 2 -f "$(PROJECT_NAME)" $< $(BANNERFILE) $@
-else
-%.bin: %.rel
-	@echo formating ... $(notdir $<)
-	@$(NANDPACK) format $< pcrel.bin
 endif
 endif
 
