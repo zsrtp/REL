@@ -1,0 +1,329 @@
+// special
+// right before m_Do_graphic::mDoGph_gInf_c::m_aspect
+8051d6c8:isWidescreen
+800120bc:dbg_inst
+
+// memory
+8000443c:memset
+80004338:memcpy
+8024d6a8:memalign
+
+// OSModule.o
+800030C8:osModuleList
+
+// m_Do_printf.o
+80009218:OSReport
+
+// m_Do_ext.o
+// text
+80014a5c:getArchiveHeapPtr
+
+// m_Do_MemCard.o
+// data
+804419e0:MemCardWorkArea0
+
+// d_stage
+8002ae74:roomTresureInit
+8002bfbc:setTresure
+8002994c:ActorCreate
+8002a370:actorInit
+8002a42c:actorInit_always
+8002a1f0:actorCommonLayerInit
+8002a4d0:tgscInfoInit
+8002b2bc:roomLoader
+
+// data
+80520878:AssertHeap
+8052087c:DbPrintHeap
+80520880:gameHeap
+80520884:zeldaHeap
+80520888:commandHeap
+8052088c:archiveHeap
+80520890:j2dHeap
+80520894:HostIOHeap
+
+// d_save.o
+8003742c:getRupeeMax
+8003944c:getSave
+8003947c:putSave
+80038d74:onEventBit
+80038d8c:offEventBit
+80037518:isDarkClearLV
+80037554:isTransformLV
+803ba750:saveBitLabels
+80038690:onCollectMirror
+80038654:onCollectCrystal
+80037850:setItem
+80038d38:isDungeonItem
+80038da4:isEventBit
+80038c18:onSwitch_dSv_memBit
+80038c68:isSwitch_dSv_memBit
+800378c4:setLineUpItem
+80038770:onLightDropGetFlag
+
+// d_event.o
+80045914:defaultSkipStb
+80045b64:skipper
+
+// DynamicLink.o
+8024d12c:do_link
+8024d3c4:do_unlink
+80520e50:m_heap
+
+// f_op_draw_tag.o
+80465970:matrixInfo
+
+// f_op_scene_req.o
+// data
+805209d0:g_dComIfAc_gameInfo
+805209d4:freezeActors
+805208e8:sConsole
+805208f0:bossFlags
+80520914:fopAc_ac_c__stopStatus
+80520930:isLoading
+80520970:homeMenuSts
+
+// f_ap_game.o
+8001e79c:fapGm_Execute
+
+// f_op_actor_mng.o
+80021410:createItemForPresentDemo
+8002149c:createItemForTrBoxDemo
+80021968:createItemForBoss
+80021a28:createItemForMidBoss
+80021a74:createItemForDirectGet
+8001f764:CreateAppend
+8001f954:fopAcM_create
+
+// f_pc_node_req
+804689e8:l_fpcNdRq_Queue
+
+// d_map_path_dmap.o
+80042624:getMapPlayerPos
+
+// d_item.o
+800920c4:checkItemGet
+803f2cc8:item_func_ptr
+803f30c8:item_getcheck_func_ptr
+80092070:execItemGet
+80092690:item_func_WOOD_STICK
+
+// d_item_data.o
+803f00e0:item_resource
+803f18dc:field_item_res
+800345f4:item_info
+
+// d_a_alink.h
+800a98d0:setStickData
+800b2a54:checkHeavyStateOn
+8010e150:checkTreasureRupeeReturn
+80112420:procGanonFinishInit
+801124a4:procGanonFinish
+//806d4cd8:dComIfGs_isEventBit
+803d4494:getSeType
+80096b4c:checkStageName
+800c8f74:checkDownAttackState
+800be650:procCoMetamorphoseInit
+8010a590:checkEventRun
+//8044B5CC:linkStatus
+800d8ed8:checkBootsMoveAnime
+8010d904:procCoTalkInit
+
+// data
+803d0028:climbVars
+803cf67c:wallMoveVars
+803cfc18:lanternVars
+803cfc90:ironBootsVars
+
+// d_menu_collect.o
+801979d8:setWalletMaxNum
+
+// JKRHeap.o
+802cd510:__nw_JKRHeap
+802cd544:__dl_JKRHeap
+
+// JKRExpHeap.o
+802cd988:do_alloc_JKRExpHeap
+802ce014:do_free_JKRExpHeap
+
+// OSCache.o
+80330c3c:ICInvalidateRange
+80330b58:DCFlushRange
+
+// runtime.o
+803a8b54:_savefpr_14
+803a8b58:_savefpr_15
+803a8b5c:_savefpr_16
+803a8b60:_savefpr_17
+803a8b64:_savefpr_18
+803a8b68:_savefpr_19
+803a8b6c:_savefpr_20
+803a8b70:_savefpr_21
+803a8b74:_savefpr_22
+803a8b78:_savefpr_23
+803a8b7c:_savefpr_24
+803a8b80:_savefpr_25
+803a8b84:_savefpr_26
+803a8b88:_savefpr_27
+803a8b8c:_savefpr_28
+803a8b90:_savefpr_29
+803a8b94:_savefpr_30
+803a8b98:_savefpr_31
+
+803a8bec:_savegpr_14
+803a8bf0:_savegpr_15
+803a8bf4:_savegpr_16
+803a8bf8:_savegpr_17
+803a8bfc:_savegpr_18
+803a8c00:_savegpr_19
+803a8c04:_savegpr_20
+803a8c08:_savegpr_21
+803a8c0c:_savegpr_22
+803a8c10:_savegpr_23
+803a8c14:_savegpr_24
+803a8c18:_savegpr_25
+803a8c1c:_savegpr_26
+803a8c20:_savegpr_27
+803a8c24:_savegpr_28
+803a8c28:_savegpr_29
+803a8c2c:_savegpr_30
+803a8c30:_savegpr_31
+803a8ea8:__umoddi3
+
+// mem.o
+803ab470:memcmp
+
+// printf.o
+803add1c:sprintf
+803adc44:snprintf
+
+// string.o
+803ae05c:strcmp
+803ae178:strncmp
+803adf2c:strcpy
+803adfec:strncpy
+803a8570:strlen
+
+// math
+803b1f18:atan
+803b2158:ceil
+803b2298:copysign
+803b22c4:cos
+803b2398:floor
+803b24dc:frexp
+803b2564:ldexp
+803b26d0:sin
+803b27a8:tan
+803b2820:acos
+803b2824:asin
+803b2828:atan2
+803b282c:exp
+803b2830:fmod
+803b2834:pow
+8025c144:fastSqrt
+803b2a80:sqrt
+
+// m_Do_controller_pad.o
+// data
+80433068:cpadInfo
+80433168:m_pad
+
+// d_com_inf_game.o
+// data
+80479f30:dComIfG_gameInfo
+//8002b3f4:dComIfG_get_timelayer
+80183ad0:dKy_daynight_check
+8002f6c8:getLayerNo_common_common
+//80141264:dComIfGs_isItemFirstBit
+80038394:isFirstBit
+//804929f4:player_get_item
+80033d28:dComIfGs_Wolf_Change_Check
+80033a78:dComIfG_getStageRes
+
+// d_kankyo.o
+// data
+804a0a54:env_light
+8018f780:dKy_darkworld_stage_check
+
+// JFWSystem.o
+// data
+80520eb8:systemConsole
+
+// Z2SceneMgr.o
+8029bfa0:sceneChange
+
+// Z2SeqMgr.o
+80298288:startBattleBgm
+
+//control.o 
+8028c150:setMessageCode_inSequence
+
+//JKRDvdRipper.o
+802d8538:loadToMainRAM2
+
+//dvdfs.o
+8034bfec:DVDConvertPathToEntrynum
+
+//d_meter2_info.o
+804a41a0:g_meter2_info
+//804bcb94:wZButtonPtr
+
+//d_a_shop_item_static.o
+803baf78:shopItemData
+
+// d_msg_class.o
+8021656c:getFontCCColorTable
+80216614:getFontGCColorTable
+
+//processor.o
+8028c438:getResource_groupID
+
+//d_msg_flow.o
+80237700:query004
+80237d94:query022
+80237dc8:query023
+80237e24:query025
+80238468:query042
+8023884c:event000
+802399a4:event035
+8023896c:event003
+80239bf4:event041
+
+//d_menu_window.o
+801e044c:collect_save_open_init
+
+//d_a_npc.o
+8013a0d8:chkEvtBit
+801410a4:chkEvtBitF
+
+//resource.o
+8028dad0:parseCharacter_1Byte
+
+//d_a_player.o
+80520c38:m_midnaActor
+
+//d_camera.o
+80167280:checkRide
+
+//d_resource.o
+8003f710:getResInfo
+
+// JUTGamePad
+// data
+804a8fa0:mPadButton
+804a9060:mPadMStick
+804a90a0:mPadSStick
+
+// c_counter
+// data
+804a53e0:g_Counter
+
+// JUTConsoleManager
+802e5d7c:draw
+
+// mem.o
+803ab34c:memmove
+
+80520e35:sPauseTimer
+
+CC008000:wgPipe

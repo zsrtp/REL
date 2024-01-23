@@ -1,0 +1,256 @@
+// special
+// right before m_Do_graphic::mDoGph_gInf_c::m_aspect
+8051dfc8:isWidescreen
+80012084:dbg_inst
+
+// memory
+8000443c:memset
+80004338:memcpy
+8024f1c4:memalign
+
+// OSModule.o
+800030C8:osModuleList
+
+// m_Do_printf.o
+80009218:OSReport
+
+// m_Do_ext.o
+// text
+80014ad8:getArchiveHeapPtr
+
+// m_Do_MemCard.o
+// data
+8043f860:MemCardWorkArea0
+
+// d_stage
+8002ae84:roomTresureInit
+8002c4c0:setTresure
+8002995c:ActorCreate
+8002a380:actorInit
+8002a43c:actorInit_always
+8002a200:actorCommonLayerInit
+8002a4e0:tgscInfoInit
+8002b2cc:roomLoader
+
+// data
+8051e6f8:AssertHeap
+8051e6fc:DbPrintHeap
+8051e700:gameHeap
+8051e704:zeldaHeap
+8051e708:commandHeap
+8051e70c:archiveHeap
+8051e710:j2dHeap
+
+// d_save.o
+8003743c:getRupeeMax
+800393c8:getSave
+800393f8:putSave
+80038cf0:onEventBit
+80038d08:offEventBit
+80037528:isDarkClearLV
+80037564:isTransformLV
+803bc210:saveBitLabels
+800386a0:onCollectMirror
+80038664:onCollectCrystal
+80037860:setItem
+80038cb4:isDungeonItem
+80038d20:isEventBit
+80038b94:onSwitch_dSv_memBit
+80038be4:isSwitch_dSv_memBit
+800378d4:setLineUpItem
+80038780:onLightDropGetFlag
+
+// d_event.o
+80045890:defaultSkipStb
+80045ae0:skipper
+
+// DynamicLink.o
+8024ec48:do_link
+8024eee0:do_unlink
+8051ecc0:m_heap
+
+// f_op_draw_tag.o
+804637f0:matrixInfo
+
+// f_op_scene_req.o
+// data
+8051e850:g_dComIfAc_gameInfo
+8051e09c:freezeActors
+8051e768:sConsole
+8051e770:bossFlags
+8051e794:fopAc_ac_c__stopStatus
+//l_fopScnRq_IsUsingOfOverlap
+8051e7b0:isLoading
+8051e7f0:homeMenuSts
+
+// f_ap_game.o
+8001e818:fapGm_Execute
+
+// f_op_actor_mng.o
+80021420:createItemForPresentDemo
+800214ac:createItemForTrBoxDemo
+80021978:createItemForBoss
+80021a38:createItemForMidBoss
+80021a84:createItemForDirectGet
+
+// d_map_path_dmap.o
+800425a0:getMapPlayerPos
+
+// d_item.o
+80092040:checkItemGet
+
+// d_a_alink.h
+800a9744:setStickData
+800b28c8:checkHeavyStateOn
+8010df8c:checkTreasureRupeeReturn
+80112244:procGanonFinishInit
+801122c8:procGanonFinish
+
+// data
+803cdf48:climbVars
+803cd59c:wallMoveVars
+803cdb38:lanternVars
+803cdbb0:ironBootsVars
+
+// d_menu_collect.o
+801976fc:setWalletMaxNum
+
+// JKRHeap.o
+802cf030:__nw_JKRHeap
+802cf064:__dl_JKRHeap
+
+// JKRExpHeap.o
+802cf4a8:do_alloc_JKRExpHeap
+802cfb34:do_free_JKRExpHeap
+
+// OSCache.o
+// 80346148:DCEnable
+// 8034615c:DCInvalidateRange
+80332678:DCFlushRange
+// 803461b8:DCStoreRange
+// 803461e8:DCFlushRangeNoSync
+// 80346214:DCStoreRangeNoSync
+// 80346240:DCZeroRange
+8033275c:ICInvalidateRange
+// 803462a0:ICFlashInvalidate
+// 803462b0:ICEnable
+// 803462c4:__LCEnable
+// 80346390:LCEnable
+// 803463c8:LCDisable
+// 803463f0:LCStoreBlocks
+// 80346414:LCStoreData
+// 803464b4:LCQueueWait
+// There is no L2GlobalInvalidate on Wii
+// 00000000:L2GlobalInvalidate
+// 803464c8:DMAErrorHandler
+// 80346610:__OSCacheInit
+
+// runtime.o
+803aa60c:_savefpr_14
+803aa610:_savefpr_15
+803aa614:_savefpr_16
+803aa618:_savefpr_17
+803aa61c:_savefpr_18
+803aa620:_savefpr_19
+803aa624:_savefpr_20
+803aa628:_savefpr_21
+803aa62c:_savefpr_22
+803aa630:_savefpr_23
+803aa634:_savefpr_24
+803aa638:_savefpr_25
+803aa63c:_savefpr_26
+803aa640:_savefpr_27
+803aa644:_savefpr_28
+803aa648:_savefpr_29
+803aa64c:_savefpr_30
+803aa650:_savefpr_31
+
+803aa6a4:_savegpr_14
+803aa6a8:_savegpr_15
+803aa6ac:_savegpr_16
+803aa6b0:_savegpr_17
+803aa6b4:_savegpr_18
+803aa6b8:_savegpr_19
+803aa6bc:_savegpr_20
+803aa6c0:_savegpr_21
+803aa6c4:_savegpr_22
+803aa6c8:_savegpr_23
+803aa6cc:_savegpr_24
+803aa6d0:_savegpr_25
+803aa6d4:_savegpr_26
+803aa6d8:_savegpr_27
+803aa6dc:_savegpr_28
+803aa6e0:_savegpr_29
+803aa6e4:_savegpr_30
+803aa6e8:_savegpr_31
+803aa960:__umoddi3
+
+// mem.o
+803acf28:memcmp
+
+// printf.o
+803af7d4:sprintf
+803af6fc:snprintf
+
+// string.o
+803afb14:strcmp
+803afc30:strncmp
+803af9e4:strcpy
+803afaa4:strncpy
+803aa028:strlen
+
+// math
+803b39d0:atan
+803b3c10:ceil
+803b3d50:copysign
+803b3d7c:cos
+803b3e50:floor
+803b3f94:frexp
+803b401c:ldexp
+803b4188:sin
+803b4260:tan
+803b42d8:acos
+803b42dc:asin
+803b42e0:atan2
+803b42e4:exp
+803b42e8:fmod
+803b42ec:pow
+8025dc60:fastSqrt
+803b4538:sqrt
+
+// m_Do_controller_pad.o
+// data
+80430ee8:cpadInfo
+80430fe8:m_pad
+
+// d_com_inf_game.o
+// data
+80477db0:dComIfG_gameInfo
+
+// d_kankyo.o
+// data
+8049e8d4:env_light
+
+// JFWSystem.o
+// data
+8051ed28:systemConsole
+
+// JUTGamePad
+// data
+804a6e20:mPadButton
+804a6ee0:mPadMStick
+804a6f20:mPadSStick
+
+// c_counter
+// data
+804a3260:g_Counter
+
+// JUTConsoleManager
+802e789c:draw
+
+// mem.o
+803ace04:memmove
+
+8051eca5:sPauseTimer
+
+CC008000:wgPipe
