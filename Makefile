@@ -7,7 +7,11 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>/devkitPPC")
 endif
 
+ifeq ($(PLATFORM),wii)
+include $(DEVKITPPC)/wii_rules
+else ifeq ($(PLATFORM),gcn)
 include $(DEVKITPPC)/gamecube_rules
+endif
 
 # Format: YYYYMMDDHHmm + 2 char Game Region
 BUILDID:='"$(shell date +'%Y%m%d%H%M')"'
@@ -30,6 +34,7 @@ OUTPUT_FILENAME := REL
 LIBTP_REL := externals/libtp_rel
 
 GCIPACK := python3 ../bin/gcipack.py
+NANDPACK := python3 ../bin/nandpack.py
 
 UNAME := $(shell uname)
 
@@ -41,20 +46,32 @@ endif
 
 
 ifeq ($(VERSION),)
-all: us jp eu
+all: us jp eu wus0 wus2 wjp weu
 us:
-	@$(MAKE) --no-print-directory VERSION=us
+	@$(MAKE) --no-print-directory VERSION=us PLATFORM=gcn
 jp:
-	@$(MAKE) --no-print-directory VERSION=jp
+	@$(MAKE) --no-print-directory VERSION=jp PLATFORM=gcn
 eu:
-	@$(MAKE) --no-print-directory VERSION=eu
+	@$(MAKE) --no-print-directory VERSION=eu PLATFORM=gcn
+wus0:
+	@$(MAKE) --no-print-directory VERSION=wus0 PLATFORM=wii
+wus2:
+	@$(MAKE) --no-print-directory VERSION=wus2 PLATFORM=wii
+wjp:
+	@$(MAKE) --no-print-directory VERSION=wjp PLATFORM=wii
+weu:
+	@$(MAKE) --no-print-directory VERSION=weu PLATFORM=wii
 
 clean:
-	@$(MAKE) --no-print-directory clean_target VERSION=us
-	@$(MAKE) --no-print-directory clean_target VERSION=jp
-	@$(MAKE) --no-print-directory clean_target VERSION=eu
+	@$(MAKE) --no-print-directory clean_target VERSION=us PLATFORM=gcn
+	@$(MAKE) --no-print-directory clean_target VERSION=jp PLATFORM=gcn
+	@$(MAKE) --no-print-directory clean_target VERSION=eu PLATFORM=gcn
+	@$(MAKE) --no-print-directory clean_target VERSION=wus0 PLATFORM=wii
+	@$(MAKE) --no-print-directory clean_target VERSION=wus2 PLATFORM=wii
+	@$(MAKE) --no-print-directory clean_target VERSION=wjp PLATFORM=wii
+	@$(MAKE) --no-print-directory clean_target VERSION=weu PLATFORM=wii
 
-.PHONY: all clean us jp eu
+.PHONY: all clean us jp eu wus0 wus2 wjp weu
 else
 
 #---------------------------------------------------------------------------------
@@ -73,10 +90,16 @@ INCLUDES	:=	include $(LIBTP_REL)/include
 # options for code generation
 #---------------------------------------------------------------------------------
 
-MACHDEP		= -mno-sdata -mgcn -DGEKKO -mcpu=750 -meabi -mhard-float
+ifeq ($(PLATFORM),wii)
+MACHDEP_PLATFORM = rvl
+else
+MACHDEP_PLATFORM = gcn
+endif
 
-CFLAGS		= -nostdlib -ffreestanding -ffunction-sections -fdata-sections -g -Os -Wall -Werror -Wno-address-of-packed-member $(MACHDEP) $(INCLUDE) -D_PROJECT_NAME='"$(PROJECT_NAME)"' -D_VERSION_MAJOR='$(_VERSION_MAJOR)' -D_VERSION_MINOR='$(_VERSION_MINOR)' -D_VERSION_PATCH='$(_VERSION_PATCH)'  -D_VERSION='"$(_VERSION)"' -D_VARIANT='"$(_VARIANT)"'
-CXXFLAGS	= -fno-exceptions -fno-rtti -std=gnu++17 $(CFLAGS)
+MACHDEP		= -mno-sdata -m$(MACHDEP_PLATFORM) -DGEKKO -mcpu=750 -meabi -mhard-float
+
+CFLAGS		= -nostdlib -ffunction-sections -fdata-sections -g -Oz -fvisibility=hidden -Wall -Werror -Wextra -Wno-address-of-packed-member -Wno-stringop-truncation -Wno-address-of-packed-member $(MACHDEP) $(INCLUDE) -D_PROJECT_NAME='"$(PROJECT_NAME)"' -D_VERSION_MAJOR='$(_VERSION_MAJOR)' -D_VERSION_MINOR='$(_VERSION_MINOR)' -D_VERSION_PATCH='$(_VERSION_PATCH)'  -D_VERSION='"$(_VERSION)"' -D_VARIANT='"$(_VARIANT)"'
+CXXFLAGS	= -fno-exceptions -fno-rtti -std=gnu++20 $(CFLAGS)
 
 LDFLAGS		= -r -e _prolog -u _prolog -u _epilog -u _unresolved -Wl,--gc-sections -nostdlib -g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 
@@ -99,8 +122,35 @@ else ifeq ($(VERSION),jp)
 	ASFLAGS += -DTP_JP
 	GAMECODE = "GZ2J"
 	PRINTVER = "JP"
+else ifeq ($(VERSION),wus0)
+	CFLAGS += -DTP_US0 -DPLATFORM_WII=1
+	CFLAGS += -D_BUILDID='"$(BUILDID)WUS0"'
+	ASFLAGS += -DTP_US0 -DPLATFORM_WII=1
+	GAMECODE = "RZDE"
+	PRINTVER = "US0"
+	PACK_VER = "us0"
+else ifeq ($(VERSION),wus2)
+	CFLAGS += -DTP_US2 -DPLATFORM_WII=1
+	CFLAGS += -D_BUILDID='"$(BUILDID)WUS0"'
+	ASFLAGS += -DTP_US2 -DPLATFORM_WII=1
+	GAMECODE = "RZDE"
+	PRINTVER = "US2"
+	PACK_VER = "us2"
+else ifeq ($(VERSION),weu)
+	CFLAGS += -DTP_EU -DPLATFORM_WII=1
+	CFLAGS += -D_BUILDID='"$(BUILDID)WEU"'
+	ASFLAGS += -DTP_EU -DPLATFORM_WII=1
+	GAMECODE = "RZDP"
+	PRINTVER = "EU"
+	PACK_VER = "eu"
+else ifeq ($(VERSION),wjp)
+	CFLAGS += -DTP_JP -DPLATFORM_WII=1
+	CFLAGS += -D_BUILDID='"$(BUILDID)WJP"'
+	ASFLAGS += -DTP_JP -DPLATFORM_WII=1
+	GAMECODE = "RZDJ"
+	PRINTVER = "JP"
+	PACK_VER = "jp"
 endif
-
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
@@ -154,8 +204,12 @@ export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES)))
 # For REL linking
 export LDFILES		:= $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.ld)))
 export MAPFILE		:= $(realpath assets/$(VERSION).lst)
-export BANNERFILE	:= $(realpath assets/banner.raw)
 export ICONFILE		:= $(realpath assets/icon.raw)
+ifeq ($(PLATFORM),gcn)
+export BANNERFILE	:= $(realpath assets/banner.raw)
+else ifeq ($(PLATFORM),wii)
+export BANNERFILE	:= $(realpath assets/wii_banner.raw)
+endif
 
 #---------------------------------------------------------------------------------
 # build a list of include paths
@@ -180,9 +234,15 @@ $(BUILD):
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
+ifeq ($(PLATFORM),gcn)
 clean_target:
 	@echo clean ... $(VERSION)
 	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).dol $(OUTPUT).rel $(OUTPUT).gci
+else ifeq ($(PLATFORM),wii)
+clean_target:
+	@echo clean ... $(VERSION)
+	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).dol $(OUTPUT).rel $(OUTPUT).bin
+endif
 
 #---------------------------------------------------------------------------------
 else
@@ -192,7 +252,11 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
+ifeq ($(PLATFORM),gcn)
 $(OUTPUT).gci: $(OUTPUT).rel $(BANNERFILE) $(ICONFILE)
+else ifeq ($(PLATFORM),wii)
+$(OUTPUT).bin: $(OUTPUT).rel $(BANNERFILE)
+endif
 $(OUTPUT).rel: $(OUTPUT).elf $(MAPFILE)
 $(OUTPUT).elf: $(LDFILES) $(OFILES)
 
@@ -203,9 +267,19 @@ $(OFILES_SOURCES) : $(HFILES)
 	@echo output ... $(notdir $@)
 	@$(ELF2REL) $< -s $(MAPFILE)
 
+ifeq ($(PLATFORM),gcn)
 %.gci: %.rel
 	@echo packing ... $(notdir $@)
 	@$(GCIPACK) $< "Custom REL File" "Twilight Princess" "($(PRINTVER)) $(PROJECT_NAME)" $(BANNERFILE) $(ICONFILE) $(GAMECODE)
+
+else ifeq ($(PLATFORM),wii)
+%.bin: %.rel
+	@[ -d $(BUILD) ] || mkdir -p $(BUILD)
+	@echo formating ... $(notdir $(BUILD))/pcrel.bin
+	@$(NANDPACK) format $< $(BUILD)/pcrel.bin
+	@echo packing ... $(notdir $@)
+	@$(NANDPACK) generate -g $(PACK_VER) -l 2 -f "$(PROJECT_NAME)" $< $(BANNERFILE) $@
+endif
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .jpg extension
