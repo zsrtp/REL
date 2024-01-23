@@ -37,10 +37,10 @@ You can refer to the [Randomizer](//github.com/zsrtp/Randomizer) Project for ref
 ## Wiki
 ---
 ### General
-Our [wiki](//wiki.zeldatp.net) is meant to be a central source of information for TP with a slightly technical focus we provide the most crucial information such as Stages & Rooms or item ids. If you're looking for information you should be looking there or ask in the [dev discord](//discord.gg/aZx8ZFcSPy).
+Our [wiki](//wiki.tprandomizer.com) is meant to be a central source of information for TP with a slightly technical focus we provide the most crucial information such as Stages & Rooms or item ids. If you're looking for information you should be looking there or ask in the [dev discord](//discord.gg/aZx8ZFcSPy).
 
 ### Coding guidelines
-If you intend to share this code with the @zsrtp community, please follow the [guidelines](//wiki.zeldatp.net/Dev:Coding_Guidelines) as strictly as possible.
+If you intend to share this code with the @zsrtp community, please follow the [guidelines](//wiki.tprandomizer.com/index.php?title=Dev:Coding_Guidelines) as strictly as possible.
 
 ## Building
 ---
@@ -71,7 +71,7 @@ Done.
 **Dependencies**
   * DevkitPPC comes with [devkitPro](//github.com/devkitPro/installer/releases)
   * [Python3](//www.python.org/downloads) (should be added to PATH or you will likely need Makefile adjustments)
-  * Optional: [Visual Studio Code](//code.visualstudio.com) with [GC Settings](//wiki.zeldatp.net/Dev:Visual_Studio_Code)
+  * Optional: [Visual Studio Code](//code.visualstudio.com) with [GC Settings](//wiki.tprandomizer.com/index.php?title=Dev:Visual_Studio_Code)
 
 **Compiling**
 
@@ -92,11 +92,11 @@ timer.cpp
 console.cpp
 restfpr_x.s
 restgpr_x.s
-linking ... Randomizer.us.elf
-output ... Randomizer.us.rel
-packing ... Randomizer.us.gci
+linking ... REL.us.elf
+output ... REL.us.rel
+packing ... REL.us.gci
 ```
-The `Randomizer.us.gci` (other versions are: `jp` and `eu`) file is now containing our custom REL. Load it with the REL Loader cheat or a hacked save file that contains the loader, it can be found on the [rando](//rando.zeldatp.net) homepage.
+The `REL.us.gci` (other versions are: `jp` and `eu`) file is now containing our custom REL. Load it with the REL Loader cheat or a hacked save file that contains the loader, both of which can be found on the wiki [REL Loader](//wiki.tprandomizer.com/index.php?title=REL_Loader) page.
 
 ---
 This mod is powered by [libtp_rel](//github.com/zsrtp/libtp_rel) and licensed under [GPLv3](/LICENSE) | (C) [AECX](//github.com/AECX), [LunarSoap](//github.com/lunarsoap5), [Zephiles](//github.com/Zephiles)

@@ -30,7 +30,10 @@ namespace mod
     // this console can be used in a similar way to cout to make printing a little easier; it also supports \n for new lines
     // (\r is implicit; UNIX-Like) and \r for just resetting the column and has overloaded constructors for all of the
     // primary cinttypes
-    Mod::Mod(): c( 0 ) { i = 0; }
+    Mod::Mod(): c( 0 )
+    {
+        i = 0;
+    }
 
     void Mod::init()
     {
@@ -42,9 +45,6 @@ namespace mod
          * libtp::display::print(1, "Hello World!");
          */
         c << "Hello world!\n\n";
-
-        // Technically I prefer to do the function hooks at the very top but since this is a template I'll do it here so we can
-        // have hello world at the top
 
         gMod = this;
         // Hook the function that runs each frame
