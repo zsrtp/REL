@@ -131,7 +131,7 @@ else ifeq ($(VERSION),wus0)
 	PACKVER = "us0"
 else ifeq ($(VERSION),wus2)
 	CFLAGS += -DTP_US2 -DPLATFORM_WII=1
-	CFLAGS += -D_BUILDID='"$(BUILDID)WUS0"'
+	CFLAGS += -D_BUILDID='"$(BUILDID)WUS2"'
 	ASFLAGS += -DTP_US2 -DPLATFORM_WII=1
 	PACKVER = "us2"
 else ifeq ($(VERSION),weu)
