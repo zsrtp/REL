@@ -39,10 +39,10 @@ You can refer to the [Randomizer](//github.com/zsrtp/Randomizer) Project for ref
 ## Wiki
 ---
 ### General
-Our [wiki](//wiki.zeldatp.net) is meant to be a central source of information for TP with a slightly technical focus we provide the most crucial information such as Stages & Rooms or item ids. If you're looking for information you should be looking there or ask in the [dev discord](//discord.gg/aZx8ZFcSPy).
+Our [wiki](//wiki.tprandomizer.com) is meant to be a central source of information for TP with a slightly technical focus we provide the most crucial information such as Stages & Rooms or item ids. If you're looking for information you should be looking there or ask in the [dev discord](//discord.gg/aZx8ZFcSPy).
 
 ### Coding guidelines
-If you intend to share this code with the @zsrtp community, please follow the [guidelines](//wiki.zeldatp.net/Dev:Coding_Guidelines) as strictly as possible.
+If you intend to share this code with the @zsrtp community, please follow the [guidelines](//wiki.tprandomizer.com/index.php?title=Dev:Coding_Guidelines) as strictly as possible.
 
 ## Building
 ---
@@ -73,7 +73,7 @@ Done.
   * DevkitPPC comes with [devkitPro](//github.com/devkitPro/installer/releases)
   * [Python3](//www.python.org/downloads) (should be added to PATH or you will likely need Makefile adjustments)
   * [pycryptodomex](https://pypi.org/project/pycryptodomex/) (For Wii only, dependency of [`nandpack.py`](https://github.com/kipcode66/wii_tools))
-  * Optional: [Visual Studio Code](//code.visualstudio.com) with [GC Settings](//wiki.zeldatp.net/Dev:Visual_Studio_Code)
+  * Optional: [Visual Studio Code](//code.visualstudio.com) with [GC Settings](//wiki.tprandomizer.com/index.php?title=Dev:Visual_Studio_Code)
 
 **Compiling**
 
@@ -101,7 +101,7 @@ linking ... REL.us.elf
 output ... REL.us.rel
 packing ... REL.us.gci
 ```
-The `REL.us.gci` (`REL.wus0.bin` for wii) (other versions are: `jp`, `eu`, `wus0`, `wus2`, `wjp`, and `weu`, as well as two other build target `gcn` and `wii` which build all the version for the specified platform) file is now containing our custom REL. Load it with the REL Loader cheat or a hacked save file that contains the loader, it can be found on the [rando](//rando.zeldatp.net) homepage.
+The `REL.us.gci` (`REL.wus0.bin` for wii) (other versions are: `jp`, `eu`, `wus0`, `wus2`, `wjp`, and `weu`, as well as two other build target `gcn` and `wii` which build all the version for the specified platform) file is now containing our custom REL. Load it with the REL Loader cheat or a hacked save file that contains the loader, both of which can be found on the wiki [REL Loader](//wiki.tprandomizer.com/index.php?title=REL_Loader) page.
 
 ##### Injecting into an existing Wii save
 
