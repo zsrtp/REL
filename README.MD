@@ -120,6 +120,5 @@ Where:
 - `data.bin`: this is the save file we want to inject the mod into.
 - `REL.wus0.bin`: this is the resulting save file with the mod injected into it.
 
-
 ---
 This mod is powered by [libtp_rel](//github.com/zsrtp/libtp_rel) and licensed under [GPLv3](/LICENSE) | (C) [AECX](//github.com/AECX), [LunarSoap](//github.com/lunarsoap5), [Zephiles](//github.com/Zephiles), [kipcode66](//github.com/kipcode66)
