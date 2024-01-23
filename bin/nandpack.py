@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+"""Tool to pack/unpack Wii saves & inject REL modules."""
+
 # Copyright 2021 kipcode66 & Seeky
 # Based off of Dolphin Emulator Project https://github.com/dolphin-emu/dolphin.git
 # Copyright 2010 Dolphin Emulator Project
@@ -16,14 +18,15 @@
 # Copyright 2020 Linus S. (aka PistonMiner)
 # Modifications made by Zephiles
 
+import logging
 import sys
 import os
 import argparse
 import struct
 import ctypes
 from io import FileIO
-from enum import Enum
-from typing import Any, Dict, List
+from enum import IntEnum
+from typing import Any, ByteString, Dict, List
 from Crypto.Cipher import AES
 import hashlib
 import secrets
@@ -36,11 +39,7 @@ from datetime import datetime
 # +----------------------+
 
 # Program Constants/global varibables
-TXT_PROG_NAME = sys.argv[0]
-TXT_PROG_DESC = "Tool to pack/unpack Wii saves & inject REL modules."
 VERSION = "0.2.1"
-
-verbosity = 1
 
 # Constants
 BLOCK_SZ = 0x40
@@ -52,20 +51,23 @@ BK_LISTED_SZ = 0x70
 SIG_SZ = 0x40
 FULL_CERT_SZ = 0x3C0
 
-NODE_TYPE_FILE = 1
-NODE_TYPE_DIR = 2
-
 DEFAULT_DEVICE_ID = 0x0403AC68
 
 OS_BUS_CLOCK = 243000000
 
 # Crypto values
-SD_KEY = bytes([0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08, 0xaf, 0xba,
-                0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d])
-SD_INITIAL_IV = bytes([0x21, 0x67, 0x12, 0xE6, 0xAA, 0x1F, 0x68, 0x9F,
-                       0x95, 0xC5, 0xA2, 0x23, 0x24, 0xDC, 0x6A, 0x98])
-MD5_BLANKER = bytes([0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45,
-                     0x17, 0xAB, 0x06, 0xEC, 0x22, 0x45, 0x1A, 0x57, 0x93])
+SD_KEY = bytes([0xab, 0x01, 0xb9, 0xd8,
+                0xe1, 0x62, 0x2b, 0x08,
+                0xaf, 0xba, 0xd8, 0x4d,
+                0xbf, 0xc2, 0xa5, 0x5d])
+SD_INITIAL_IV = bytes([0x21, 0x67, 0x12, 0xE6,
+                       0xAA, 0x1F, 0x68, 0x9F,
+                       0x95, 0xC5, 0xA2, 0x23,
+                       0x24, 0xDC, 0x6A, 0x98])
+MD5_BLANKER = bytes([0x0E, 0x65, 0x37, 0x81,
+                     0x99, 0xBE, 0x45, 0x17,
+                     0xAB, 0x06, 0xEC, 0x22,
+                     0x45, 0x1A, 0x57, 0x93])
 NG_ID = 0x0403AC68
 CA_ID = 1
 MS_ID = 2
@@ -76,19 +78,32 @@ SYSTEM_MENU = 0x0000000100000002
 
 DEFAULT_SIGNATURE = bytes([
     # R
-    0x00, 0xD8, 0x81, 0x63, 0xB2, 0x00, 0x6B, 0x0B, 0x54, 0x82, 0x88, 0x63, 0x81, 0x1C, 0x00, 0x71,
-    0x12, 0xED, 0xB7, 0xFD, 0x21, 0xAB, 0x0E, 0x50, 0x0E, 0x1F, 0xBF, 0x78, 0xAD, 0x37,
+    0x00, 0xD8, 0x81, 0x63, 0xB2, 0x00, 0x6B, 0x0B, 0x54, 0x82,
+    0x88, 0x63, 0x81, 0x1C, 0x00, 0x71, 0x12, 0xED, 0xB7, 0xFD,
+    0x21, 0xAB, 0x0E, 0x50, 0x0E, 0x1F, 0xBF, 0x78, 0xAD, 0x37,
     # S
-    0x00, 0x71, 0x8D, 0x82, 0x41, 0xEE, 0x45, 0x11, 0xC7, 0x3B, 0xAC, 0x08, 0xB6, 0x83, 0xDC, 0x05,
-    0xB8, 0xA8, 0x90, 0x1F, 0xA8, 0x2A, 0x0E, 0x4E, 0x76, 0xEF, 0x44, 0x72, 0x99, 0xF8
+    0x00, 0x71, 0x8D, 0x82, 0x41, 0xEE, 0x45, 0x11, 0xC7, 0x3B,
+    0xAC, 0x08, 0xB6, 0x83, 0xDC, 0x05, 0xB8, 0xA8, 0x90, 0x1F,
+    0xA8, 0x2A, 0x0E, 0x4E, 0x76, 0xEF, 0x44, 0x72, 0x99, 0xF8
 ])
 
-DEFAULT_PRIVATE_KEY = bytes([0x00, 0xAB, 0xEE, 0xC1, 0xDD, 0xB4, 0xA6, 0x16, 0x6B, 0x70, 0xFD, 0x7E, 0x56, 0x67, 0x70,
-                             0x57, 0x55, 0x27, 0x38, 0xA3, 0x26, 0xC5, 0x46, 0x16, 0xF7, 0x62, 0xC9, 0xED, 0x73, 0xF2])
+DEFAULT_PRIVATE_KEY = bytes([0x00, 0xAB, 0xEE, 0xC1, 0xDD, 0xB4,
+                             0xA6, 0x16, 0x6B, 0x70, 0xFD, 0x7E,
+                             0x56, 0x67, 0x70, 0x57, 0x55, 0x27,
+                             0x38, 0xA3, 0x26, 0xC5, 0x46, 0x16,
+                             0xF7, 0x62, 0xC9, 0xED, 0x73, 0xF2])
 
 # DEFAULT_PUBLIC_KEY = ec.privToPub(commondefs.DEFAULT_PRIVATE_KEY)
-DEFAULT_PUBLIC_KEY = bytearray([0x01, 0x04, 0x0b, 0xe0, 0x46, 0xea, 0x95, 0x19, 0xf2, 0x85, 0x9b, 0x0d, 0x94, 0x29, 0xa2, 0xc6, 0x91, 0x80, 0x15, 0x89, 0x8f, 0x2e, 0xba, 0x20, 0xcf, 0xfd, 0xb3, 0x16,
-                                0x4f, 0x0c, 0x01, 0x38, 0xc5, 0xd2, 0x2f, 0xc1, 0xe9, 0xee, 0x17, 0x6c, 0x2d, 0x8f, 0xa4, 0x74, 0xb0, 0xe9, 0x38, 0x66, 0x6e, 0x60, 0xcf, 0x06, 0xd5, 0x08, 0x7a, 0xc2, 0x4f, 0x01, 0x39, 0x79])
+DEFAULT_PUBLIC_KEY = bytes([0x01, 0x04, 0x0b, 0xe0, 0x46, 0xea,
+                            0x95, 0x19, 0xf2, 0x85, 0x9b, 0x0d,
+                            0x94, 0x29, 0xa2, 0xc6, 0x91, 0x80,
+                            0x15, 0x89, 0x8f, 0x2e, 0xba, 0x20,
+                            0xcf, 0xfd, 0xb3, 0x16, 0x4f, 0x0c,
+                            0x01, 0x38, 0xc5, 0xd2, 0x2f, 0xc1,
+                            0xe9, 0xee, 0x17, 0x6c, 0x2d, 0x8f,
+                            0xa4, 0x74, 0xb0, 0xe9, 0x38, 0x66,
+                            0x6e, 0x60, 0xcf, 0x06, 0xd5, 0x08,
+                            0x7a, 0xc2, 0x4f, 0x01, 0x39, 0x79])
 
 SQUARE = bytes([0x00, 0x01, 0x04, 0x05,
                 0x10, 0x11, 0x14, 0x15,
@@ -118,35 +133,211 @@ GAME_INFO_PTR = {
 
 BIN_DATA_INIT = {
     # NA 1.0
-    "us0": base64.b64decode(b"PICASYiEOEAchAqUOIQCCDyggEZgpYPgfYUiFH2JA6ZOgAQg"),
+    "us0": base64.b64decode("PICASYiEOEAchAqUOIQCCDyggEZgpYPgfYUiFH2JA6ZOgAQg"),
     # NA 1.2
-    "us2": base64.b64decode(b"PICASIiErkgchAqUOIQCCDyggERgpfngfYUiFH2JA6ZOgAQg"),
+    "us2": base64.b64decode("PICASIiErkgchAqUOIQCCDyggERgpfngfYUiFH2JA6ZOgAQg"),
     # PAL
-    "eu":  base64.b64decode(b"PICASIiEt0AchAqUOIQCCDyggEVgpQLgfYUiFH2JA6ZOgAQg"),
+    "eu":  base64.b64decode("PICASIiEt0AchAqUOIQCCDyggEVgpQLgfYUiFH2JA6ZOgAQg"),
     # JP
-    "jp":  base64.b64decode(b"PICASIiEjMgchAqUOIQCCDyggERgpdhgfYUiFH2JA6ZOgAQg"),
+    "jp":  base64.b64decode("PICASIiEjMgchAqUOIQCCDyggERgpdhgfYUiFH2JA6ZOgAQg"),
 }
 
 BIN_DATA_MAIN = {
     '1': {
         # NA 1.0
-        "us0": base64.b64decode(b"PGCANGBjxXRIAAAFfIgCpjiEAFBIAAFJiG2yYCwDAABBggAggG27SDiAAAU4oAABPYCAKmGM/Nx9iAOmToAAIThgAAA8gIAAOKAAAD2AgAFhjKn4fYkDpk6ABCCUIf/gfAgCppABACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/gDigAvo9gIA8YYwJFH2IA6ZOgAAhf6PreDiAAvpIAADRk62/kDh9AvqQbb+UPGCANGBjd/RjpADsSAAAnTxggDRgbMV4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4R28Hx/G3g/wIAAY8Nb9DyAgLA4oAL6S4wH9WPDW/Q4gAL6SAAASTxggABgY4ZEY8RduEgAACE8YIA0YGPFdDyAgABghFxQSAAADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAAElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CANGOlYYh8qAOmToAAIWOjYmx8aAOmf+P7eH/E83hOgAAhu6EACIABACR8CAOmOCEAIE6AACCQbbJklCH/4HwIAqaQAQAkv2EACD/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDbBZSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAgSDa5ASwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/hON4SAAAWXx7G3h/o+t4f2TbeH+F43hINrjJLAMAAEGAAFiAmwAgSAAANXx8G3h/Y9t4f4TjeEg0UZksAwABQIIAKJOfVLiTf1S8g9sANEgAADCAbbNkSC3XvIBts2Q4oAAgSC3RJH9j23hINFOxf4TjeEv//+F/ZNt4S///2X+j63hINsJxf6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CAOmOCEAIEgAJ2g="),  # 706372656C2E62696E00
+        "us0": base64.b64decode("PGCANGBjxXRIAAAFfIgCpjiEAFBIAAFJiG2yYCwDAABBg"
+                                "gAggG27SDiAAAU4oAABPYCAKmGM/Nx9iAOmToAAIThgAA"
+                                "A8gIAAOKAAAD2AgAFhjKn4fYkDpk6ABCCUIf/gfAgCppA"
+                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
+                                "gDigAvo9gIA8YYwJFH2IA6ZOgAAhf6PreDiAAvpIAADRk"
+                                "62/kDh9AvqQbb+UPGCANGBjd/RjpADsSAAAnTxggDRgbM"
+                                "V4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
+                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4R28Hx/"
+                                "G3g/wIAAY8Nb9DyAgLA4oAL6S4wH9WPDW/Q4gAL6SAAAS"
+                                "TxggABgY4ZEY8RduEgAACE8YIA0YGPFdDyAgABghFxQSA"
+                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
+                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CANGOlYYh8"
+                                "qAOmToAAIWOjYmx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
+                                "CR8CAOmOCEAIE6AACCQbbJklCH/4HwIAqaQAQAkv2EACD"
+                                "/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDb"
+                                "BZSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAg"
+                                "SDa5ASwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/h"
+                                "ON4SAAAWXx7G3h/o+t4f2TbeH+F43hINrjJLAMAAEGAAF"
+                                "iAmwAgSAAANXx8G3h/Y9t4f4TjeEg0UZksAwABQIIAKJO"
+                                "fVLiTf1S8g9sANEgAADCAbbNkSC3XvIBts2Q4oAAgSC3R"
+                                "JH9j23hINFOxf4TjeEv//+F/ZNt4S///2X+j63hINsJxf"
+                                "6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CA"
+                                "OmOCEAIEgAJ2g="),  # 706372656C2E62696E00
         # NA 1.2
-        "us2": base64.b64decode(b"PGCAM2Bjb0RIAAAFfIgCpjiEAFBIAAFJiG2x4CwDAABBggAggG266DiAAAU4oAABPYCAKmGM9vB9iAOmToAAIThgAAA8gIAAOKAAAD2AgAFhjKqwfYkDpk6ABCCUIf/gfAgCppABACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/gDigAvo9gIA6YYyzTH2IA6ZOgAAhf6PreDiAAvpIAADRk62/CDh9AvqQbb8MPGCAM2BjIcRjpADsSAAAnTxggDNgbG9IfYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4MgwHx/G3g/wIAAY8Nb9DyAgLA4oAL6S4qyLWPDW/Q4gAL6SAAASTxggABgY4ZEY8RduEgAACE8YIAzYGNvRDyAgABghFxQSAAADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAAElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlC1h8qAOmToAAIWOjDDx8aAOmf+P7eH/E83hOgAAhu6EACIABACR8CAOmOCEAIE6AACCQbbHklCH/4HwIAqaQAQAkv2EACD/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDVrnSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAgSDVjOSwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/hON4SAAAWXx7G3h/o+t4f2TbeH+F43hINWMBLAMAAEGAAFiAmwAgSAAANXx8G3h/Y9t4f4TjeEgy+2ksAwABQIIAKJOfVLiTf1S8g9sANEgAADCAbbLkSCyBjIBtsuQ4oAAgSCx69H9j23hIMv2Bf4TjeEv//+F/ZNt4S///2X+j63hINWypf6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CAOmOCEAIEgAJ2g="),  # 706372656C2E62696E00
+        "us2": base64.b64decode("PGCAM2Bjb0RIAAAFfIgCpjiEAFBIAAFJiG2x4CwDAABBg"
+                                "gAggG266DiAAAU4oAABPYCAKmGM9vB9iAOmToAAIThgAA"
+                                "A8gIAAOKAAAD2AgAFhjKqwfYkDpk6ABCCUIf/gfAgCppA"
+                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
+                                "gDigAvo9gIA6YYyzTH2IA6ZOgAAhf6PreDiAAvpIAADRk"
+                                "62/CDh9AvqQbb8MPGCAM2BjIcRjpADsSAAAnTxggDNgbG"
+                                "9IfYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
+                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4MgwHx/"
+                                "G3g/wIAAY8Nb9DyAgLA4oAL6S4qyLWPDW/Q4gAL6SAAAS"
+                                "TxggABgY4ZEY8RduEgAACE8YIAzYGNvRDyAgABghFxQSA"
+                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
+                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlC1h8"
+                                "qAOmToAAIWOjDDx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
+                                "CR8CAOmOCEAIE6AACCQbbHklCH/4HwIAqaQAQAkv2EACD"
+                                "/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDV"
+                                "rnSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAg"
+                                "SDVjOSwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/h"
+                                "ON4SAAAWXx7G3h/o+t4f2TbeH+F43hINWMBLAMAAEGAAF"
+                                "iAmwAgSAAANXx8G3h/Y9t4f4TjeEgy+2ksAwABQIIAKJO"
+                                "fVLiTf1S8g9sANEgAADCAbbLkSCyBjIBtsuQ4oAAgSCx6"
+                                "9H9j23hIMv2Bf4TjeEv//+F/ZNt4S///2X+j63hINWypf"
+                                "6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CA"
+                                "OmOCEAIEgAJ2g="),  # 706372656C2E62696E00
         # PAL
-        "eu": base64.b64decode(b"PGCAM2Bjc3RIAAAFfIgCpjiEAFBIAAFJiG2woCwDAABBggAggG25qDiAAAU4oAABPYCAKmGM+yB9iAOmToAAIThgAAA8gIAAOKAAAD2AgAFhjKqgfYkDpk6ABCCUIf/gfAgCppABACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/gDigAvo9gIA6YYy30H2IA6ZOgAAhf6PreDiAAvpIAADRk629yDh9AvqQbb3MPGCAM2BjJfRjpADsSAAAnTxggDNgbHN4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4Mk8Hx/G3g/wIAAY8Nb9DyAgLA4oAL6S4q2sWPDW/Q4gAL6SAAASTxggABgY4ZEY8RduEgAACE8YIAzYGNzdDyAgABghFxQSAAADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAAElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlD4h8qAOmToAAIWOjEGx8aAOmf+P7eH/E83hOgAAhu6EACIABACR8CAOmOCEAIE6AACCQbbCklCH/4HwIAqaQAQAkv2EACD/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDVvzSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAgSDVnaSwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/hON4SAAAWXx7G3h/o+t4f2TbeH+F43hINWcxLAMAAEGAAFiAmwAgSAAANXx8G3h/Y9t4f4TjeEgy/5ksAwABQIIAKJOfVLiTf1S8g9sANEgAADCAbbGkSCyFvIBtsaQ4oAAgSCx/JH9j23hIMwGxf4TjeEv//+F/ZNt4S///2X+j63hINXDZf6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CAOmOCEAIEgAJ2g="),  # 706372656C2E62696E00
+        "eu":  base64.b64decode("PGCAM2Bjc3RIAAAFfIgCpjiEAFBIAAFJiG2woCwDAABBg"
+                                "gAggG25qDiAAAU4oAABPYCAKmGM+yB9iAOmToAAIThgAA"
+                                "A8gIAAOKAAAD2AgAFhjKqgfYkDpk6ABCCUIf/gfAgCppA"
+                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
+                                "gDigAvo9gIA6YYy30H2IA6ZOgAAhf6PreDiAAvpIAADRk"
+                                "629yDh9AvqQbb3MPGCAM2BjJfRjpADsSAAAnTxggDNgbH"
+                                "N4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
+                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4Mk8Hx/"
+                                "G3g/wIAAY8Nb9DyAgLA4oAL6S4q2sWPDW/Q4gAL6SAAAS"
+                                "TxggABgY4ZEY8RduEgAACE8YIAzYGNzdDyAgABghFxQSA"
+                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
+                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlD4h8"
+                                "qAOmToAAIWOjEGx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
+                                "CR8CAOmOCEAIE6AACCQbbCklCH/4HwIAqaQAQAkv2EACD"
+                                "/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDV"
+                                "vzSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAg"
+                                "SDVnaSwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/h"
+                                "ON4SAAAWXx7G3h/o+t4f2TbeH+F43hINWcxLAMAAEGAAF"
+                                "iAmwAgSAAANXx8G3h/Y9t4f4TjeEgy/5ksAwABQIIAKJO"
+                                "fVLiTf1S8g9sANEgAADCAbbGkSCyFvIBtsaQ4oAAgSCx/"
+                                "JH9j23hIMwGxf4TjeEv//+F/ZNt4S///2X+j63hINXDZf"
+                                "6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CA"
+                                "OmOCEAIEgAJ2g="),  # 706372656C2E62696E00
         # JP
-        "jp": base64.b64decode(b"PGCAM2BjimRIAAAFfIgCpjiEAFBIAAFJiG2x4CwDAABBggAggG262DiAAAU4oAABPYCAK2GMEhB9iAOmToAAIThgAAA8gIAAOKAAAD2AgAFhjKssfYkDpk6ABCCUIf/gfAgCppABACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/gDigAvo9gIA6YYzOBH2IA6ZOgAAhf6PreDiAAvpIAADRk62++Dh9AvqQbb78PGCAM2BjPORjpADsSAAAnTxggDNgbIpofYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4M74Hx/G3g/wIAAY8Nb9DyAgLA4oAL6S4rM5WPDW/Q4gAL6SAAASTxggABgY4ZEY8RduEgAACE8YIAzYGOKZDyAgABghFxQSAAADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAAElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlJnh8qAOmToAAIWOjJ1x8aAOmf+P7eH/E83hOgAAhu6EACIABACR8CAOmOCEAIE6AACCQbbHklCH/4HwIAqaQAQAkv2EACD/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDWGVSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAgSDV98SwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/hON4SAAAWXx7G3h/o+t4f2TbeH+F43hINX25LAMAAEGAAFiAmwAgSAAANXx8G3h/Y9t4f4TjeEgzFoksAwABQIIAKJOfVLiTf1S8g9sANEgAADCAbbLkSCycrIBtsuQ4oAAgSCyWFH9j23hIMxihf4TjeEv//+F/ZNt4S///2X+j63hINYdhf6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CAOmOCEAIEgAJ2g="),  # 706372656C2E62696E00
+        "jp":  base64.b64decode("PGCAM2BjimRIAAAFfIgCpjiEAFBIAAFJiG2x4CwDAABBg"
+                                "gAggG262DiAAAU4oAABPYCAK2GMEhB9iAOmToAAIThgAA"
+                                "A8gIAAOKAAAD2AgAFhjKssfYkDpk6ABCCUIf/gfAgCppA"
+                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
+                                "gDigAvo9gIA6YYzOBH2IA6ZOgAAhf6PreDiAAvpIAADRk"
+                                "62++Dh9AvqQbb78PGCAM2BjPORjpADsSAAAnTxggDNgbI"
+                                "pofYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
+                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4M74Hx/"
+                                "G3g/wIAAY8Nb9DyAgLA4oAL6S4rM5WPDW/Q4gAL6SAAAS"
+                                "TxggABgY4ZEY8RduEgAACE8YIAzYGOKZDyAgABghFxQSA"
+                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
+                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlJnh8"
+                                "qAOmToAAIWOjJ1x8aAOmf+P7eH/E83hOgAAhu6EACIABA"
+                                "CR8CAOmOCEAIE6AACCQbbHklCH/4HwIAqaQAQAkv2EACD"
+                                "/ggAA7wAAAOIAAjEgAALV8fRt4Y+Ne5H+k63g4oAABSDW"
+                                "GVSwDAABAggDEOIAAIEgAAJF8ext4f6PreH9k23g4oAAg"
+                                "SDV98SwDAABBgACQg5sAADucAB9XnAA0f2TbeEgAAFl/h"
+                                "ON4SAAAWXx7G3h/o+t4f2TbeH+F43hINX25LAMAAEGAAF"
+                                "iAmwAgSAAANXx8G3h/Y9t4f4TjeEgzFoksAwABQIIAKJO"
+                                "fVLiTf1S8g9sANEgAADCAbbLkSCycrIBtsuQ4oAAgSCyW"
+                                "FH9j23hIMxihf4TjeEv//+F/ZNt4S///2X+j63hINYdhf"
+                                "6TreEv//8ksHgAAQYIADH/IA6ZOgAAhu2EACIABACR8CA"
+                                "OmOCEAIEgAJ2g="),  # 706372656C2E62696E00
     },
     '2': {
         # NA 1.0
-        "us0": base64.b64decode(b"PGCANGBjxXRIAAAFfIgCpjiEAFBIAAGJiG2yYCwDAABBggAggG27SDiAAAU4oAABPYCAKmGM/Nx9iAOmToAAIThgAAA8gIAAOKAAAD2AgAFhjKn4fYkDpk6ABCCUIf/gfAgCppABACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/gDigBAo9gIA8YYwJFH2IA6ZOgAAhf6PreDiABApIAAERk62/kDh9BAqQbb+UPGCANGBjd/RjpADsSAAA3TxggDRgbMV4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB8fxt4PGCBM2BjOpw8gICwYIQBDEgAAJ1/4/t4S4R28Hx/G3g/wIAAY8Nb9DyAgLA4oAQKS4wH9WPDW/Q4gAQKSAAAiTxggABgY4zsY8Rd+EgAAGE8YIAuYGMkIGPEX4xIAABRPGCAAWBjJexjxF+gSAAAQTxggAFgYyYQY8RftEgAADE8YIAAYGOGRGPEX9BIAAAhPGCANGBjxXQ8gIAAYIRcUEgAAA1/4/t4SIM5CHyDIFBUhAG6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8fxt4fJ4jeD+ggDRjpWGIfKgDpk6AACFjo2JsfGgDpn/j+3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAglCH/YHwIAqaQAQCkP+CAADgAAACQH1S0kB9UuJAfVLxINs45O8EACGPjX/R/xPN4OKAAAUg2wSUsAwAAQIIBRIOtrcg4YAAgSAAAqXx8G3iTra3If8PzeH+E43g4oAAgSDa4uSwDAAA7YAAgQYABAIN8AAA7ewAfV3sANH9j23hIAABxfHwbeH/D83h/hON4f2XbeEg2uIUsAwAAQYAAzD9AkRB/g+N4f0TTeEg0UWUsAwABQIIAoIB8AEiQba3IfJzaFHyDIFBIAAB1gJwAIDhkAB9UYwA0kH9UtH9D03hIAABdk19UuJOfVLxIAACMlCH/8HwIAqaQAQAUv8EACHx/G3g4gAAgSDP9YXx+G3g4gAAAf+X7eEv/5S1/5Pt4S//+kX/D83i7wQAIgAEAFHwIA6Y4IQAQToAAIJQh//B8CAKmkAEAFL/BAAh8nyN4S///vH+D43hINFL9f0PTeICcACBL///Zk62tyH+D43h/ZNt4S///yX/D83hINsGxgAEApHwIA6Y4IQCgVCsG/kgALWg8gIAAgIRUtHxjIhQ8H27wSC3EiDyAgACAhFS0fGQYUH/E83hIAMZAOMYMAD0AgACBCFS0fMgwUHzlMFBU57K+SADGSJBtsmQ8YIAAgGNUvCwDAABBggAQgGMANHxoA6ZOgAAhSAAmWA=="),  # 706372656C2E62696E00
+        "us0": base64.b64decode("PGCANGBjxXRIAAAFfIgCpjiEAFBIAAFJiG2yYCwDAABBg"
+                                "gAggG27SDiAAAU4oAABPYCAKmGM/Nx9iAOmToAAIThgAA"
+                                "A8gIAAOKAAAD2AgAFhjKn4fYkDpk6ABCCUIf/gfAgCppA"
+                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
+                                "gDigAw49gIA8YYwJFH2IA6ZOgAAhf6PreDiAAw5IAADRk"
+                                "62/kDh9Aw6Qbb+UPGCANGBjd/RjpADsSAAAnTxggDRgbM"
+                                "V4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
+                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4R28Hx/"
+                                "G3g/wIAAY8Nb9DyAgLA4oAMOS4wH9WPDW/Q4gAMOSAAAS"
+                                "TxggABgY4ZEY8RduEgAACE8YIA0YGPFdDyAgABghFxQSA"
+                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
+                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CANGOlYYh8"
+                                "qAOmToAAIWOjYmx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
+                                "CR8CAOmOCEAIE6AACCQbbJklCH/UHwIAqaQAQC0v2EACD"
+                                "/ggAA7wAAAO6EAIGPjXvh/pOt4OKAAAUg2wW0sAwAAQII"
+                                "A+IBts2Q4gAAgOKAAIEgt0b18ext4f6PreH9k23g4oAAg"
+                                "SDa5ASwDAABAgQCog5sAADucAB9XnAA0gG2zZH9k23hIL"
+                                "dgVgG2zZH+E43g4oAAgSC3ReXx7G3h/o+t4f2TbeH+F43"
+                                "hINri9LAMAAECBAGSAbbNsgJsAIIC7AERILdFNfHwbeH9"
+                                "j23h/hON4SDRRjSwDAAFAggAogLsASHy7KFCAbbNkf2Tb"
+                                "eEgt2ZGTn1S4k39UvIPbADRIAAAkf2PbeEg0U52AbbNsf"
+                                "4TjeEgt14mAbbNkf2TbeEgt131/o+t4SDbCVSweAABBgg"
+                                "AMf8gDpk6AACG7YQAIgAEAtHwIA6Y4IQCwSAAnVA=="),
         # NA 1.2
-        "us2": base64.b64decode(b"PGCAM2Bjb0RIAAAFfIgCpjiEAFBIAAGJiG2x4CwDAABBggAggG266DiAAAU4oAABPYCAKmGM9vB9iAOmToAAIThgAAA8gIAAOKAAAD2AgAFhjKqwfYkDpk6ABCCUIf/gfAgCppABACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/gDigBAo9gIA6YYyzTH2IA6ZOgAAhf6PreDiABApIAAERk62/CDh9BAqQbb8MPGCAM2BjIcRjpADsSAAA3TxggDNgbG9IfYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB8fxt4PGCBM2BjOpw8gICwYIQBDEgAAJ1/4/t4S4MgwHx/G3g/wIAAY8Nb9DyAgLA4oAQKS4qyLWPDW/Q4gAQKSAAAiTxggABgY40EY8Rd+EgAAGE8YIAsYGPN8GPEX4xIAABRPGCAAWBjJpxjxF+gSAAAQTxggAFgYybAY8RftEgAADE8YIAAYGOGRGPEX9BIAAAhPGCAM2Bjb0Q8gIAAYIRcUEgAAA1/4/t4SIM5CHyDIFBUhAG6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8fxt4fJ4jeD+ggDNjpQtYfKgDpk6AACFjoww8fGgDpn/j+3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAglCH/YHwIAqaQAQCkP+CAADgAAACQH1S0kB9UuJAfVLxINXhxO8EACGPjX/R/xPN4OKAAAUg1a10sAwAAQIIBRIOtrVg4YAAgSAAAqXx8G3iTra1Yf8PzeH+E43g4oAAgSDVi8SwDAAA7YAAgQYABAIN8AAA7ewAfV3sANH9j23hIAABxfHwbeH/D83h/hON4f2XbeEg1Yr0sAwAAQYAAzD9AkRB/g+N4f0TTeEgy+zUsAwABQIIAoIB8AEiQba1YfJzaFHyDIFBIAAB1gJwAIDhkAB9UYwA0kH9UtH9D03hIAABdk19UuJOfVLxIAACMlCH/8HwIAqaQAQAUv8EACHx/G3g4gAAgSDKnMXx+G3g4gAAAf+X7eEv/5S1/5Pt4S//+kX/D83i7wQAIgAEAFHwIA6Y4IQAQToAAIJQh//B8CAKmkAEAFL/BAAh8nyN4S///vH+D43hIMvzNf0PTeICcACBL///Zk62tWH+D43h/ZNt4S///yX/D83hINWvpgAEApHwIA6Y4IQCgVCsG/kgALYA8gIAAgIRUtHxjIhQ8H27wSCxuWDyAgACAhFS0fGQYUH/E83hIAMbwOMYMAD0AgACBCFS0fMgwUHzlMFBU57K+SADG+JBtseQ8YIAAgGNUvCwDAABBggAQgGMANHxoA6ZOgAAhSAAmWA=="),  # 706372656C2E62696E00
+        "us2": base64.b64decode("PGCAM2Bjb0RIAAAFfIgCpjiEAFBIAAFJiG2x4CwDAABBg"
+                                "gAggG266DiAAAU4oAABPYCAKmGM9vB9iAOmToAAIThgAA"
+                                "A8gIAAOKAAAD2AgAFhjKqwfYkDpk6ABCCUIf/gfAgCppA"
+                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
+                                "gDigAw49gIA6YYyzTH2IA6ZOgAAhf6PreDiAAw5IAADRk"
+                                "62/CDh9Aw6Qbb8MPGCAM2BjIcRjpADsSAAAnTxggDNgbG"
+                                "9IfYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
+                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4MgwHx/"
+                                "G3g/wIAAY8Nb9DyAgLA4oAMOS4qyLWPDW/Q4gAMOSAAAS"
+                                "TxggABgY4ZEY8RduEgAACE8YIAzYGNvRDyAgABghFxQSA"
+                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
+                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlC1h8"
+                                "qAOmToAAIWOjDDx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
+                                "CR8CAOmOCEAIE6AACCQbbHklCH/UHwIAqaQAQC0v2EACD"
+                                "/ggAA7wAAAO6EAIGPjXvh/pOt4OKAAAUg1a6UsAwAAQII"
+                                "A+IBtsuQ4gAAgOKAAIEgse418ext4f6PreH9k23g4oAAg"
+                                "SDVjOSwDAABAgQCog5sAADucAB9XnAA0gG2y5H9k23hIL"
+                                "IHlgG2y5H+E43g4oAAgSCx7SXx7G3h/o+t4f2TbeH+F43"
+                                "hINWL1LAMAAECBAGSAbbLsgJsAIIC7AERILHsdfHwbeH9"
+                                "j23h/hON4SDL7XSwDAAFAggAogLsASHy7KFCAbbLkf2Tb"
+                                "eEgsg2GTn1S4k39UvIPbADRIAAAkf2PbeEgy/W2AbbLsf"
+                                "4TjeEgsgVmAbbLkf2TbeEgsgU1/o+t4SDVsjSweAABBgg"
+                                "AMf8gDpk6AACG7YQAIgAEAtHwIA6Y4IQCwSAAnVA=="),
         # PAL
-        "eu": base64.b64decode(b"PGCAM2Bjc3RIAAAFfIgCpjiEAFBIAAGJiG2woCwDAABBggAggG25qDiAAAU4oAABPYCAKmGM+yB9iAOmToAAIThgAAA8gIAAOKAAAD2AgAFhjKqgfYkDpk6ABCCUIf/gfAgCppABACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/gDigBAo9gIA6YYy30H2IA6ZOgAAhf6PreDiABApIAAERk629yDh9BAqQbb3MPGCAM2BjJfRjpADsSAAA3TxggDNgbHN4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB8fxt4PGCBM2BjOpw8gICwYIQBDEgAAJ1/4/t4S4Mk8Hx/G3g/wIAAY8Nb9DyAgLA4oAQKS4q2sWPDW/Q4gAQKSAAAiTxggABgY40EY8Rd+EgAAGE8YIAsYGPSIGPEX4xIAABRPGCAAWBjJoxjxF+gSAAAQTxggAFgYyawY8RftEgAADE8YIAAYGOGRGPEX9BIAAAhPGCAM2Bjc3Q8gIAAYIRcUEgAAA1/4/t4SIM5CHyDIFBUhAG6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8fxt4fJ4jeD+ggDNjpQ+IfKgDpk6AACFjoxBsfGgDpn/j+3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAglCH/YHwIAqaQAQCkP+CAADgAAACQH1S0kB9UuJAfVLxINXyhO8EACGPjX/R/xPN4OKAAAUg1b40sAwAAQIIBRIOtrAA4YAAgSAAAqXx8G3iTrawAf8PzeH+E43g4oAAgSDVnISwDAAA7YAAgQYABAIN8AAA7ewAfV3sANH9j23hIAABxfHwbeH/D83h/hON4f2XbeEg1Zu0sAwAAQYAAzD9AkRB/g+N4f0TTeEgy/2UsAwABQIIAoIB8AEiQbawAfJzaFHyDIFBIAAB1gJwAIDhkAB9UYwA0kH9UtH9D03hIAABdk19UuJOfVLxIAACMlCH/8HwIAqaQAQAUv8EACHx/G3g4gAAgSDKrYXx+G3g4gAAAf+X7eEv/5S1/5Pt4S//+kX/D83i7wQAIgAEAFHwIA6Y4IQAQToAAIJQh//B8CAKmkAEAFL/BAAh8nyN4S///vH+D43hIMwD9f0PTeICcACBL///Zk62sAH+D43h/ZNt4S///yX/D83hINXAZgAEApHwIA6Y4IQCgVCsG/kgALYA8gIAAgIRUtHxjIhQ8H27wSCxyiDyAgACAhFS0fGQYUH/E83hIAMbgOMYMAD0AgACBCFS0fMgwUHzlMFBU57K+SADG6JBtsKQ8YIAAgGNUvCwDAABBggAQgGMANHxoA6ZOgAAhSAAmWA=="),  # 706372656C2E62696E00
+        "eu":  base64.b64decode("PGCAM2Bjc3RIAAAFfIgCpjiEAFBIAAFJiG2woCwDAABBg"
+                                "gAggG25qDiAAAU4oAABPYCAKmGM+yB9iAOmToAAIThgAA"
+                                "A8gIAAOKAAAD2AgAFhjKqgfYkDpk6ABCCUIf/gfAgCppA"
+                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
+                                "gDigAw49gIA6YYy30H2IA6ZOgAAhf6PreDiAAw5IAADRk"
+                                "629yDh9Aw6Qbb3MPGCAM2BjJfRjpADsSAAAnTxggDNgbH"
+                                "N4fYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
+                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4Mk8Hx/"
+                                "G3g/wIAAY8Nb9DyAgLA4oAMOS4q2sWPDW/Q4gAMOSAAAS"
+                                "TxggABgY4ZEY8RduEgAACE8YIAzYGNzdDyAgABghFxQSA"
+                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
+                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlD4h8"
+                                "qAOmToAAIWOjEGx8aAOmf+P7eH/E83hOgAAhu6EACIABA"
+                                "CR8CAOmOCEAIE6AACCQbbCklCH/UHwIAqaQAQC0v2EACD"
+                                "/ggAA7wAAAO6EAIGPjXvh/pOt4OKAAAUg1b9UsAwAAQII"
+                                "A+IBtsaQ4gAAgOKAAIEgsf718ext4f6PreH9k23g4oAAg"
+                                "SDVnaSwDAABAgQCog5sAADucAB9XnAA0gG2xpH9k23hIL"
+                                "IYVgG2xpH+E43g4oAAgSCx/eXx7G3h/o+t4f2TbeH+F43"
+                                "hINWclLAMAAECBAGSAbbGsgJsAIIC7AERILH9NfHwbeH9"
+                                "j23h/hON4SDL/jSwDAAFAggAogLsASHy7KFCAbbGkf2Tb"
+                                "eEgsh5GTn1S4k39UvIPbADRIAAAkf2PbeEgzAZ2AbbGsf"
+                                "4TjeEgshYmAbbGkf2TbeEgshX1/o+t4SDVwvSweAABBgg"
+                                "AMf8gDpk6AACG7YQAIgAEAtHwIA6Y4IQCwSAAnVA=="),
         # JP
-        "jp": base64.b64decode(b"PGCAM2BjimRIAAAFfIgCpjiEAFBIAAGJiG2x4CwDAABBggAggG262DiAAAU4oAABPYCAK2GMEhB9iAOmToAAIThgAAA8gIAAOKAAAD2AgAFhjKssfYkDpk6ABCCUIf/gfAgCppABACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/gDigBAo9gIA6YYzOBH2IA6ZOgAAhf6PreDiABApIAAERk62++Dh9BAqQbb78PGCAM2BjPORjpADsSAAA3TxggDNgbIpofYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB8fxt4PGCBM2BjOpw8gICwYIQBDEgAAJ1/4/t4S4M74Hx/G3g/wIAAY8Nb9DyAgLA4oAQKS4rM5WPDW/Q4gAQKSAAAiTxggABgY40EY8Rd+EgAAGE8YIAsYGPpEGPEX4xIAABRPGCAAWBjJxhjxF+gSAAAQTxggAFgYyc8Y8RftEgAADE8YIAAYGOGRGPEX9BIAAAhPGCAM2BjimQ8gIAAYIRcUEgAAA1/4/t4SIM5CHyDIFBUhAG6PKBIAHylI3iQowAAOIAABJQh/+B8CAKmkAEAJL+hAAh8fxt4fJ4jeD+ggDNjpSZ4fKgDpk6AACFjoydcfGgDpn/j+3h/xPN4ToAAIbuhAAiAAQAkfAgDpjghACBOgAAglCH/YHwIAqaQAQCkP+CAADgAAACQH1S0kB9UuJAfVLxINZMpO8EACGPjX/R/xPN4OKAAAUg1hhUsAwAAQIIBRIOtrUg4YAAgSAAAqXx8G3iTra1If8PzeH+E43g4oAAgSDV9qSwDAAA7YAAgQYABAIN8AAA7ewAfV3sANH9j23hIAABxfHwbeH/D83h/hON4f2XbeEg1fXUsAwAAQYAAzD9AkRB/g+N4f0TTeEgzFlUsAwABQIIAoIB8AEiQba1IfJzaFHyDIFBIAAB1gJwAIDhkAB9UYwA0kH9UtH9D03hIAABdk19UuJOfVLxIAACMlCH/8HwIAqaQAQAUv8EACHx/G3g4gAAgSDLCUXx+G3g4gAAAf+X7eEv/5S1/5Pt4S//+kX/D83i7wQAIgAEAFHwIA6Y4IQAQToAAIJQh//B8CAKmkAEAFL/BAAh8nyN4S///vH+D43hIMxftf0PTeICcACBL///Zk62tSH+D43h/ZNt4S///yX/D83hINYahgAEApHwIA6Y4IQCgVCsG/kgALYA8gIAAgIRUtHxjIhQ8H27wSCyJeDyAgACAhFS0fGQYUH/E83hIAMdsOMboAD0AgACBCFS0fMgwUHzlMFBU57K+SADHdJBtseQ8YIAAgGNUvCwDAABBggAQgGMANHxoA6ZOgAAhSAAmWA=="),  # 706372656C2E62696E00
+        "jp":  base64.b64decode("PGCAM2BjimRIAAAFfIgCpjiEAFBIAAFJiG2x4CwDAABBg"
+                                "gAggG262DiAAAU4oAABPYCAK2GMEhB9iAOmToAAIThgAA"
+                                "A8gIAAOKAAAD2AgAFhjKssfYkDpk6ABCCUIf/gfAgCppA"
+                                "BACS/oQAIfH4beHyfI3g/oICwf6PreEgAAAV8iAKmOIT/"
+                                "gDigAw49gIA6YYzOBH2IA6ZOgAAhf6PreDiAAw5IAADRk"
+                                "62++Dh9Aw6Qbb78PGCAM2BjPORjpADsSAAAnTxggDNgbI"
+                                "pofYkDpn/D83h/5Pt4u6EACIABACR8CAOmOCEAIE6ABCB"
+                                "8fxt4PGCBM2BjOpw8gICwYIQBDEgAAF1/4/t4S4M74Hx/"
+                                "G3g/wIAAY8Nb9DyAgLA4oAMOS4rM5WPDW/Q4gAMOSAAAS"
+                                "TxggABgY4ZEY8RduEgAACE8YIAzYGOKZDyAgABghFxQSA"
+                                "AADX/j+3hIgzlIfIMgUFSEAbo8oEgAfKUjeJCjAAA4gAA"
+                                "ElCH/4HwIAqaQAQAkv6EACHx/G3h8niN4P6CAM2OlJnh8"
+                                "qAOmToAAIWOjJ1x8aAOmf+P7eH/E83hOgAAhu6EACIABA"
+                                "CR8CAOmOCEAIE6AACCQbbHklCH/UHwIAqaQAQC0v2EACD"
+                                "/ggAA7wAAAO6EAIGPjXvh/pOt4OKAAAUg1hl0sAwAAQII"
+                                "A+IBtsuQ4gAAgOKAAIEgslq18ext4f6PreH9k23g4oAAg"
+                                "SDV98SwDAABAgQCog5sAADucAB9XnAA0gG2y5H9k23hIL"
+                                "J0FgG2y5H+E43g4oAAgSCyWaXx7G3h/o+t4f2TbeH+F43"
+                                "hINX2tLAMAAECBAGSAbbLsgJsAIIC7AERILJY9fHwbeH9"
+                                "j23h/hON4SDMWfSwDAAFAggAogLsASHy7KFCAbbLkf2Tb"
+                                "eEgsnoGTn1S4k39UvIPbADRIAAAkf2PbeEgzGI2AbbLsf"
+                                "4TjeEgsnHmAbbLkf2TbeEgsnG1/o+t4SDWHRSweAABBgg"
+                                "AMf8gDpk6AACG7YQAIgAEAtHwIA6Y4IQCwSAAnVA=="),
     }
 }
 
@@ -156,6 +347,16 @@ BIN_DATA_MAIN = {
 
 
 def alignUp(value: int, size: int):
+    """Aligns and address to the given size.
+
+    :param value: The address to align up.
+    :type value: int
+    :param size: The size to which we align the address.
+    :type size: int
+
+    :return The aligned address.
+    :rtype int
+    """
     return value + (size - value % size) % size
 
 
@@ -183,9 +384,16 @@ def aes_cbc_encrypt(key: bytes, iv: bytes, data: bytes) -> bytes:
 # +-------------------+
 
 # Classes used to generate a new signature
+# (Algorithm from the Dolphin Emulator project)
 
 
 class Elt:
+    pass
+
+
+class Elt:
+    __slots__ = ('data',)
+
     def __init__(self, data: bytes = bytes(30)):
         self.data = bytes(data[0:min(30, len(data))]) + \
             bytes(max(0, 30 - len(data)))
@@ -196,20 +404,28 @@ class Elt:
     def mulX(self):
         new_data = bytearray(self.data)
         carry = new_data[0] & 1
+
+        # x = (self.data[29] << 1) & 0xFF
+        # xs = itertools.chain([0], ((y << 1) & 0xFF for y in self.data[1:-1]))
+        # new_data[:-1] = list((x ^ (y >> 7)) & 0xFF for x, y in zip(xs, self.data[1:]))
         x = 0
         for i in range(29):
             y = new_data[i + 1]
             new_data[i] = (x ^ (y >> 7)) & 0xFF
             x = (y << 1) & 0xFF
+
         new_data[29] = (x ^ carry) & 0xFF
         new_data[20] ^= (carry << 2) & 0xFF
         self.data = bytes(new_data)
 
     def square(self):
+        # wide = bytearray(y for x in (
+        #     (SQUARE[x >> 4], SQUARE[x & 0xF]) for x in self.data) for y in x)
         wide = bytearray(60)
         for i in range(30):
             wide[2 * i] = SQUARE[self.data[i] >> 4]
             wide[2 * i + 1] = SQUARE[self.data[i] & 0xF]
+
         for i in range(30):
             x = wide[i]
             wide[i + 19] ^= x >> 7
@@ -243,25 +459,28 @@ class Elt:
         return s.square()
 
     def __add__(self, other):
-        if type(other) != type(self):
-            raise TypeError("Cannot add {} with {}".format(
-                type(self).__name__, type(other).__name__))
+        if not isinstance(other, Elt):
+            raise TypeError(
+                f"Cannot add {self.__class__.__name__} "
+                f"with {other.__class__.__name__}")
         return Elt(bytes(a ^ b for a, b in zip(self.data, other.data)))
 
     def __truediv__(self, other):
-        if type(other) != type(self):
-            raise TypeError("Cannot divide {} with {}".format(
-                type(self).__name__, type(other).__name__))
+        if not isinstance(other, Elt):
+            raise TypeError(
+                f"Cannot divide {self.__class__.__name__} "
+                f"with {other.__class__.__name__}")
         return self * other.inv()
 
-    def __mul__(self, other):
-        if type(other) != type(self):
-            raise TypeError("Cannot multiply {} with {}".format(
-                type(self).__name__, type(other).__name__))
+    def __mul__(self, other: Elt):
+        if not isinstance(other, Elt):
+            raise TypeError(
+                f"Cannot multiply {self.__class__.__name__} "
+                f"with {other.__class__.__name__}")
         d = Elt()
         i = 0
         mask = 1
-        for n in range(233):
+        for _ in range(233):
             d.mulX()
             if (self.data[i] & mask) != 0:
                 d = d + other
@@ -273,6 +492,8 @@ class Elt:
 
 
 class Point:
+    __slots__ = ('x', 'y',)
+
     def __init__(self, x: Elt = Elt(), y: Elt = Elt()):
         self.x = Elt(x.data)
         self.y = Elt(y.data)
@@ -295,9 +516,10 @@ class Point:
         return r
 
     def __add__(self, other):
-        if type(other) != type(self):
-            raise TypeError("Cannot add {} with {}".format(
-                type(self).__name__, type(other).__name__))
+        if not isinstance(other, Point):
+            raise TypeError(
+                f"Cannot add {self.__class__.__name__} "
+                f"with {other.__class__.__name__}")
         if self.is_zero():
             return Point(other.x, other.y)
         if other.is_zero():
@@ -318,10 +540,10 @@ class Point:
         return Point(rx, ry)
 
     def __mul__(self, other):
-        compatible_types = [bytes, bytearray]
-        if not type(other) in compatible_types:
+        if not isinstance(other, ByteString):
             raise TypeError(
-                "Point only multiplies with bytes, got {}".format(type(other).__name__))
+                f"Point only multiplies with bytes, "
+                f"got {other.__class__.__name__}")
         d = Point()
         for i in range(30):
             mask = 0x80
@@ -333,30 +555,37 @@ class Point:
         return d
 
 
-EC_G = Point(Elt(bytes([0x00, 0xfa, 0xc9, 0xdf, 0xcb, 0xac, 0x83, 0x13, 0xbb, 0x21, 0x39, 0xf1, 0xbb, 0x75, 0x5f,
-                        0xef, 0x65, 0xbc, 0x39, 0x1f, 0x8b, 0x36, 0xf8, 0xf8, 0xeb, 0x73, 0x71, 0xfd, 0x55, 0x8b])),
-             Elt(bytes([0x01, 0x00, 0x6a, 0x08, 0xa4, 0x19, 0x03, 0x35, 0x06, 0x78, 0xe5, 0x85, 0x28, 0xbe, 0xbf,
-                        0x8a, 0x0b, 0xef, 0xf8, 0x67, 0xa7, 0xca, 0x36, 0x71, 0x6f, 0x7e, 0x01, 0xf8, 0x10, 0x52])))
+EC_G = Point(Elt(bytes([0x00, 0xfa, 0xc9, 0xdf, 0xcb, 0xac,
+                        0x83, 0x13, 0xbb, 0x21, 0x39, 0xf1,
+                        0xbb, 0x75, 0x5f, 0xef, 0x65, 0xbc,
+                        0x39, 0x1f, 0x8b, 0x36, 0xf8, 0xf8,
+                        0xeb, 0x73, 0x71, 0xfd, 0x55, 0x8b])),
+             Elt(bytes([0x01, 0x00, 0x6a, 0x08, 0xa4, 0x19,
+                        0x03, 0x35, 0x06, 0x78, 0xe5, 0x85,
+                        0x28, 0xbe, 0xbf, 0x8a, 0x0b, 0xef,
+                        0xf8, 0x67, 0xa7, 0xca, 0x36, 0x71,
+                        0x6f, 0x7e, 0x01, 0xf8, 0x10, 0x52])))
 
 EC_N = bytes([0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
               0x00, 0x00, 0x00, 0x00, 0x00, 0x13, 0xe9, 0x74, 0xe7, 0x2f,
               0x8a, 0x69, 0x22, 0x03, 0x1d, 0x26, 0x03, 0xcf, 0xe0, 0xd7])
 
 
-class SignatureType(Enum):
+class SignatureType(IntEnum):
     RSA4096 = 0x00010000
     RSA2048 = 0x00010001
     ECC = 0x00010002
 
 
-class PublicKeyType(Enum):
+class PublicKeyType(IntEnum):
     RSA4096 = 0x00000000
     RSA2048 = 0x00000001
     ECC = 0x00000002
 
 
 class SignatureECC:
-    PACK_FORMAT = '>I60s64s64s'
+    __slots__ = ('type', 'sig', 'fill', 'issuer',)
+    PACK_FORMAT = struct.Struct('>I60s64s64s')
 
     def __init__(self, type: SignatureType, sig, fill, issuer):
         self.type = type
@@ -365,11 +594,12 @@ class SignatureECC:
         self.issuer = issuer
 
     def pack(self):
-        return struct.pack(SignatureECC.PACK_FORMAT, self.type.value, self.sig, self.fill, self.issuer)
+        return SignatureECC.PACK_FORMAT.pack(self.type.value, self.sig, self.fill, self.issuer)
 
 
 class CertHeader:
-    PACK_FORMAT = '>I64sI'
+    __slots__ = ('public_key_type', 'name', 'id',)
+    PACK_FORMAT = struct.Struct('>I64sI')
 
     def __init__(self, public_key_type: PublicKeyType, name, id):
         self.public_key_type = public_key_type
@@ -377,10 +607,12 @@ class CertHeader:
         self.id = id
 
     def pack(self):
-        return struct.pack(CertHeader.PACK_FORMAT, self.public_key_type.value, self.name, self.id)
+        return CertHeader.PACK_FORMAT.pack(self.public_key_type.value, self.name, self.id)
 
 
 class CertECC:
+    __slots__ = ("signature", "header", "public_key", "padding",)
+
     def __init__(self, signature: SignatureECC, header: CertHeader, public_key: bytes, padding: bytes):
         self.signature = signature
         self.header = header
@@ -405,9 +637,9 @@ def make_blank_ecc_cert(issuer, name, public_key: bytes, key_id):
 
 
 def get_device_certificate(device_id=DEFAULT_DEVICE_ID):
-    name = "NG{:08x}".format(device_id)
+    name = f"NG{device_id:08x}"
     cert = make_blank_ecc_cert(
-        "Root-CA{:08x}-MS{:08x}".format(CA_ID, MS_ID), name, DEFAULT_PUBLIC_KEY, DEFAULT_KEY_ID)
+        f"Root-CA{CA_ID:08x}-MS{MS_ID:08x}", name, DEFAULT_PUBLIC_KEY, DEFAULT_KEY_ID)
     cert.signature.sig = DEFAULT_SIGNATURE
     return cert
 
@@ -484,7 +716,6 @@ def sign2(key: bytes, hash: bytes):
     while m >= EC_N:
         m = bytearray(secrets.token_bytes(30))
         m[0] &= 1
-    # m = bytearray.fromhex("00701509504f6a02090f69565a7a956860a641728f58d4cc6faf844099ae")
     r = (EC_G * m).x
     if r.data >= EC_N:
         r.data = bytes(bn_sub_modulus(r.data, EC_N, 30))
@@ -501,9 +732,6 @@ def sign2(key: bytes, hash: bytes):
     signature = bytearray(60)
     signature[:30] = r.data
     signature[30:] = s.data
-    # print(key.hex())
-    # print(hash.hex())
-    # print(signature.hex())
     return bytes(signature)
 
 
@@ -512,17 +740,22 @@ def sign(title_id, data, device_id=DEFAULT_DEVICE_ID):
     ap_priv = bytearray(30)
     ap_priv[0x1d] = 1
 
-    signer = "Root-CA{:08x}-MS{:08x}-NG{:08x}".format(
-        CA_ID, MS_ID, device_id)
-    name = "AP{:016x}".format(title_id)
+    logging.debug(f"Signing for device #{device_id:08x}")
+    # In practice, we can reduce the encryption time by using a
+    # pre-calculated "cert", but it's not a significant amount of time
+    signer = f"Root-CA{CA_ID:08x}-MS{MS_ID:08x}-NG{device_id:08x}"
+    name = f"AP{title_id:016x}"
+    logging.debug("Creating certificate...")
     cert = make_blank_ecc_cert(signer, name, priv_to_pub(ap_priv), 0)
     cert_packed = cert.pack()
     hash = sha1(cert_packed[0x80:])
     cert.signature.sig = sign2(DEFAULT_PRIVATE_KEY, hash)
     cert = cert.pack()
-    # cert = base64.b64decode(b"AAEAAgAxbefnyo3f/fE/4DVU8541kl0+s0CFBhET3TcR5QD5YCLg3pIJkvSjm+PFb/ec3QsaPjsqj0/qx+QNpwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABSb290LUNBMDAwMDAwMDEtTVMwMDAwMDAwMi1ORzA0MDNhYzY4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkFQMDAwMDAwMDEwMDAwMDAwMgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPrJ38usgxO7ITnxu3Vf72W8OR+LNvj463Nx/VWLAQBqCKQZAzUGeOWFKL6/igvv+GenyjZxb34B+BBSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+
+    logging.debug("Signing data...")
     hash = sha1(data)
     signature = sign2(ap_priv, hash)
+    logging.debug("Signed")
 
     return (signature, cert)
 
@@ -548,8 +781,17 @@ def verify_signature(public_key, signature, hash):
 
 
 class Header:
-    PACK_FORMAT = '>QIBB16sH'
-    PACK_SIZE = struct.calcsize(PACK_FORMAT) + FULL_BNR_MAX
+    """The encryption header.
+
+    It contains the necessary data for the save file's encryption and
+    signature. It wraps the archive that contains the game's saved
+    files.
+    """
+
+    __slots__ = ("tid", "banner_size", "permissions",
+                 "unk1", "md5", "unk2", "banner",)
+    PACK_FORMAT = struct.Struct('>QIBB16sH')
+    PACK_SIZE = PACK_FORMAT.size + FULL_BNR_MAX
 
     def __init__(self, tid: int, banner_size: int, permissions: int, unk1: int, md5: bytes, unk2: int, banner=bytes()):
         self.tid = tid
@@ -561,57 +803,76 @@ class Header:
         self.banner = banner
 
     def __repr__(self) -> str:
-        return f"Header(tid=0x{self.tid:016x}, banner_size=0x{self.banner_size:08x}, permissions=0x{self.permissions:02x}, unk1=0x{self.unk1:02x}, md5=0x{self.md5.hex()}, unk2={self.unk2:04x}, banner={self.banner})"
+        return (f"Header(tid=0x{self.tid:016x}, "
+                f"banner_size=0x{self.banner_size:08x}, "
+                f"permissions=0x{self.permissions:02x}, "
+                f"unk1=0x{self.unk1:02x}, "
+                f"md5=0x{self.md5.hex()}, "
+                f"unk2={self.unk2:04x}, "
+                f"banner={self.banner})")
 
     def __str__(self) -> str:
-        return f"Header(tid=0x{self.tid:016x}, banner_size=0x{self.banner_size:08x}, permissions=0x{self.permissions:02x}, unk1=0x{self.unk1:02x}, md5=0x{self.md5.hex()}, unk2={self.unk2:04x}, banner={type(self.banner).__name__}({len(self.banner)}))"
+        return (f"Header(tid=0x{self.tid:016x}, "
+                f"banner_size=0x{self.banner_size:08x}, "
+                f"permissions=0x{self.permissions:02x}, "
+                f"unk1=0x{self.unk1:02x}, "
+                f"md5=0x{self.md5.hex()}, "
+                f"unk2={self.unk2:04x}, "
+                f"banner={self.banner.__class__.__name__}({len(self.banner)}))")
 
     def updateBanner(self, banner: bytes):
+        """Updates the headers and sets the new banner.
+
+        :param banner: The banner file
+        :type banner: bytes
+        """
         new_size = len(banner)
         if (new_size < FULL_BNR_MIN) or (new_size > FULL_BNR_MAX) or (((new_size - BNR_SZ) % ICON_SZ) != 0):
-            if verbosity > 0:
-                raise ValueError(f"Invalid banner size {new_size:04x}")
+            logging.error(f"Invalid banner size {new_size:04x}")
         self.banner_size = new_size
         self.banner = banner
         self.md5 = md5(self.to_bytes())
 
+    @staticmethod
     def generate(banner: bytes, game_version: str):
+        """Generates a new header from a given banner for the given version
+        of 'The Legend of Zelda: Twilight Princess'.
+        """
         hdr = Header(VERSIONS[game_version], len(
-            banner), 0x34, 0, MD5_BLANKER, 0)
-        hdr.banner = banner
+            banner), 0x34, 0, MD5_BLANKER, 0, banner)
         hdr.md5 = md5(hdr.to_bytes())
         return hdr
 
+    @staticmethod
     def unpack(buffer: bytes):
         data = aes_cbc_decrypt(SD_KEY, SD_INITIAL_IV,
                                buffer[0:Header.PACK_SIZE])
-        hdr = Header(*struct.unpack(Header.PACK_FORMAT,
-                                    data[0:struct.calcsize(Header.PACK_FORMAT)]))
-        hdr.banner = data[struct.calcsize(
-            Header.PACK_FORMAT):][0:hdr.banner_size]
+        hdr = Header(
+            *Header.PACK_FORMAT.unpack(data[0:Header.PACK_FORMAT.size]))
+        hdr.banner = data[Header.PACK_FORMAT.size:][0:hdr.banner_size]
         if (hdr.banner_size < FULL_BNR_MIN) or (hdr.banner_size > FULL_BNR_MAX) or (((hdr.banner_size - BNR_SZ) % ICON_SZ) != 0):
-            if verbosity > 0:
-                print("Warning: Not a Wii save or read failure for banner size 0x{:04x}".format(
-                    hdr.banner_size), hdr.banner_size)
+            logging.error(
+                "Warning: Not a Wii save or read failure for "
+                f"banner size 0x{hdr.banner_size:04x} ({hdr.banner_size})")
             return
         hdr_md5 = hdr.md5
         hdr.md5 = MD5_BLANKER
         md5_calc = md5(hdr.to_bytes())
         hdr.md5 = hdr_md5
         if md5_calc != hdr_md5:
-            if verbosity > 0:
-                print("[Header] MD5 mismatch: {} != {}".format(
-                    hdr_md5.hex(), md5_calc.hex()))
+            logging.error(
+                f"[Header] MD5 mismatch: {hdr_md5.hex()} != {md5_calc.hex()}")
             return
         return hdr
 
+    @staticmethod
     def from_file(reader: FileIO):
         reader.seek(0)
         return Header.unpack(reader.read(Header.PACK_SIZE))
 
     def to_bytes(self):
-        data1 = struct.pack(Header.PACK_FORMAT, self.tid, self.banner_size,
-                            self.permissions, self.unk1, self.md5, self.unk2)
+        data1 = Header.PACK_FORMAT.pack(
+            self.tid, self.banner_size, self.permissions, self.unk1, self.md5, self.unk2)
         data2 = self.banner
         if len(data2) < FULL_BNR_MAX:
             data2 += bytes(FULL_BNR_MAX - self.banner_size)
@@ -624,8 +885,16 @@ class Header:
 
 
 class BkHeader:
-    PACK_FORMAT = '>8I64sQ6s18s'
-    PACK_SIZE = struct.calcsize(PACK_FORMAT)
+    """The archive header.
+
+    This header contains the data related to the archival of
+    the files saved by the game.
+    """
+
+    __slots__ = ("size", "magic", "ngid", "number_of_files", "size_of_files",
+                 "unk1", "unk2", "total_size", "unk3", "tid", "mac_address",
+                 "padding",)
+    PACK_FORMAT = struct.Struct('>8I64sQ6s18s')
     MAGIC = 0x426B0001
 
     def __init__(self, size, magic, ngid, number_of_files, size_of_files, unk1, unk2, total_size, unk3, tid, mac_address, padding):
@@ -646,91 +915,98 @@ class BkHeader:
         return f"BkHeader(size=0x{self.size:08x}, magic=0x{self.magic:08x}, ngid=0x{self.ngid:08x}, number_of_files={self.number_of_files}, size_of_files={self.size_of_files}, unk1={self.unk1}, unk2={self.unk2}, total_size={self.total_size}, unk3={self.unk3}, tid=0x{self.tid:016x}, mac_address={self.mac_address}, padding={self.padding})"
 
     def __str__(self) -> str:
-        return f"BkHeader(size=0x{self.size:08x}, magic=0x{self.magic:08x}, ngid=0x{self.ngid:08x}, number_of_files={self.number_of_files}, size_of_files={self.size_of_files}, unk1={self.unk1}, unk2={self.unk2}, total_size={self.total_size}, unk3={type(self.unk3).__name__}({len(self.unk3)}), tid=0x{self.tid:016x}, mac_address={self.mac_address.hex()}, padding={type(self.padding).__name__}({len(self.padding)}))"
+        return f"BkHeader(size=0x{self.size:08x}, magic=0x{self.magic:08x}, ngid=0x{self.ngid:08x}, number_of_files={self.number_of_files}, size_of_files={self.size_of_files}, unk1={self.unk1}, unk2={self.unk2}, total_size={self.total_size}, unk3={self.unk3.__class__.__name__}({len(self.unk3)}), tid=0x{self.tid:016x}, mac_address={self.mac_address.hex()}, padding={self.padding.__class__.__name__}({len(self.padding)}))"
 
+    @staticmethod
     def generate(files: list, game_version: str):
         size_of_files = sum(len(file) for file in files)
         bkh = BkHeader(BK_LISTED_SZ, BkHeader.MAGIC, DEFAULT_DEVICE_ID, len(files), size_of_files, 0, 0,
                        size_of_files + FULL_CERT_SZ, bytes(0x40), VERSIONS[game_version], bytes(6), bytes(0x12))
         return bkh
 
+    @staticmethod
     def unpack(buffer):
-        hdr = BkHeader(*struct.unpack(BkHeader.PACK_FORMAT, buffer))
+        hdr = BkHeader(*BkHeader.PACK_FORMAT.unpack(buffer))
         if hdr.size != BK_LISTED_SZ:
-            if verbosity > 0:
-                print("[BkHeader] Invalid header size: {} != {}".format(
-                    BK_LISTED_SZ, hdr.size))
+            logging.error(
+                f"[BkHeader] Invalid header size: {BK_LISTED_SZ} != {hdr.size}")
             return
         if hdr.magic != BkHeader.MAGIC:
-            if verbosity > 0:
-                print("[BkHeader] Magic mismatch: {:08x} != {:08x}".format(
-                    BkHeader.MAGIC, hdr.magic))
+            logging.error(
+                f"[BkHeader] Magic mismatch: {BkHeader.MAGIC:08x} != {hdr.magic:08x}")
             return
         if hdr.size_of_files + FULL_CERT_SZ != hdr.total_size:
-            if verbosity > 0:
-                print("[BkHeader] Invalid files size: {} != {}".format(
-                    hdr.size_of_files + FULL_CERT_SZ, hdr.total_size))
+            logging.error(
+                f"[BkHeader] Invalid files size: {hdr.size_of_files + FULL_CERT_SZ} != {hdr.total_size}")
             return
         return hdr
 
+    @staticmethod
     def from_file(reader: FileIO):
         reader.seek(Header.PACK_SIZE)
-        data = reader.read(BkHeader.PACK_SIZE)
+        data = reader.read(BkHeader.PACK_FORMAT.size)
         return BkHeader.unpack(data)
 
     def to_bytes(self):
-        return struct.pack(BkHeader.PACK_FORMAT, self.size, self.magic, self.ngid, self.number_of_files, self.size_of_files, self.unk1, self.unk2, self.total_size, self.unk3, self.tid, self.mac_address, self.padding)
+        return BkHeader.PACK_FORMAT.pack(self.size, self.magic, self.ngid, self.number_of_files, self.size_of_files, self.unk1, self.unk2, self.total_size, self.unk3, self.tid, self.mac_address, self.padding)
 
     def pack(self):
         return self.to_bytes()
 
 
+class NodeType(IntEnum):
+    FILE = 1
+    DIR = 2
+
+
 class FileHDR:
-    PACK_FORMAT = '>II3B64s5s16s32s'
-    PACK_SIZE = struct.calcsize(PACK_FORMAT)
+    __slots__ = ("magic", "size", "permissions", "attrib",
+                 "node_type", "name", "padding", "iv", "unk",)
+    PACK_FORMAT = struct.Struct('>II3B64s5s16s32s')
     MAGIC = 0x03adf17e
 
-    def __init__(self, magic, size, permissions, attrib, node_type, name, padding, iv, unk):
+    def __init__(self, magic, size, permissions, attrib, node_type: NodeType, name, padding, iv, unk):
         self.magic = magic
         self.size = size
         self.permissions = permissions
         self.attrib = attrib
-        self.node_type = node_type
+        self.node_type = NodeType(node_type)
         self.name = name
         self.padding = padding
         self.iv = iv
         self.unk = unk
 
     def __str__(self) -> str:
-        return f"FileHDR(magic=0x{self.magic:08x}, size=0x{self.size:08x}, permissions=0x{self.permissions:02x}, attrib=0x{self.attrib:02x}, node_type={'File' if self.node_type == 1 else 'Directory' if self.node_type == 2 else self.node_type}, name={self.name}, padding=bytes({len(self.padding)}), iv={self.iv.hex()}, unk={self.unk})"
+        return f"FileHDR(magic=0x{self.magic:08x}, size=0x{self.size:08x}, permissions=0x{self.permissions:02x}, attrib=0x{self.attrib:02x}, node_type={self.node_type.name[:1].upper() + self.node_type.name.lower()[1:]}, name={self.name}, padding=bytes({len(self.padding)}), iv={self.iv.hex()}, unk={self.unk})"
 
+    @staticmethod
     def unpack(buffer):
-        file_hdr = FileHDR(*struct.unpack(FileHDR.PACK_FORMAT, buffer))
+        file_hdr = FileHDR(*FileHDR.PACK_FORMAT.unpack(buffer))
         if file_hdr.magic != FileHDR.MAGIC:
-            if verbosity > 0:
-                print("[FileHDR] magic field mismatch: {:08x} != {:08x}".format(
-                    FileHDR.MAGIC, file_hdr.magic))
+            logging.error(
+                f"[FileHDR] magic field mismatch: {FileHDR.MAGIC:08x} != {file_hdr.magic:08x}")
             return
         return file_hdr
 
+    @staticmethod
     def from_save_file(save):
         if len(save.path) >= 0x40:
-            if verbosity > 0:
-                print("Error: file name \"{}\" is too long (64 characters max)")
+            logging.error(
+                f"Error: file name {save.path!a} is too long (64 characters max)")
             return
         file_hdr = FileHDR(FileHDR.MAGIC, len(save.data) if save.node_type == 1 else 0, save.mode,
                            save.attributes, save.node_type, bytes(save.path, 'utf-8')[:min(0x40, len(save.path))] + bytes(max(0, 0x40-len(save.path))), bytes(5), SD_INITIAL_IV, bytes(0x20))
         return file_hdr
 
     def pack(self):
-        return struct.pack(FileHDR.PACK_FORMAT, self.magic, self.size, self.permissions, self.attrib, self.node_type, self.name, self.padding, self.iv, self.unk)
+        return FileHDR.PACK_FORMAT.pack(self.magic, self.size, self.permissions, self.attrib, self.node_type, self.name, self.padding, self.iv, self.unk)
 
 
 class SaveFile:
-    def __init__(self, mode=0, attributes=0, node_type=2, path="", data=None):
+    def __init__(self, mode=0, attributes=0, node_type: NodeType = NodeType.DIR, path="", data=None):
         self.mode = mode
         self.attributes = attributes
-        self.node_type = node_type
+        self.node_type = NodeType(node_type)
         self.path = path
         self.data = data
 
@@ -738,15 +1014,16 @@ class SaveFile:
         return f"SaveFile(path={repr(self.path)}, node_type={self.node_type}, mode={self.mode}, attributes={self.attributes}, data={self.data})"
 
     def __str__(self) -> str:
-        return f"SaveFile(path=\"{self.path}\", node_type={'File' if self.node_type == 1 else 'Directory' if self.node_type == 2 else self.node_type}, mode={self.mode}, attributes={self.attributes}, data={type(self.data).__name__}({len(self.data)}))"
+        return f"SaveFile(path=\"{self.path}\", node_type={self.node_type.name[:1].upper() + self.node_type.name.lower()[1:]}, mode={self.mode}, attributes={self.attributes}, data={self.data.__class__.__name__}({len(self.data)}))"
 
+    @staticmethod
     def unpack(reader: FileIO):
-        data = reader.read(FileHDR.PACK_SIZE)
+        data = reader.read(FileHDR.PACK_FORMAT.size)
         file_hdr = FileHDR.unpack(data)
         if file_hdr is None:
             return
         file_data = None
-        if file_hdr.node_type == NODE_TYPE_FILE:
+        if file_hdr.node_type == NodeType.FILE:
             size = file_hdr.size
             rounded_size = alignUp(size, BLOCK_SZ)
             file_data = reader.read(rounded_size)
@@ -754,18 +1031,17 @@ class SaveFile:
         return SaveFile(file_hdr.permissions, file_hdr.attrib, file_hdr.node_type,
                         file_hdr.name.split(b'\x00')[0].decode('utf-8'), file_data)
 
+    @staticmethod
     def unpack_all(reader: FileIO, bkh: BkHeader):
         files: List[SaveFile] = []
-        reader.seek(Header.PACK_SIZE + BkHeader.PACK_SIZE)
+        reader.seek(Header.PACK_SIZE + BkHeader.PACK_FORMAT.size)
         for i in range(0, bkh.number_of_files):
-            if verbosity > 2:
-                print("[SaveFile] Unpacking file #{}".format(i))
+            logging.debug(f"[SaveFile] Unpacking file #{i}")
             file = SaveFile.unpack(reader)
             if not file is None:
                 files.append(file)
             else:
-                if verbosity > 0:
-                    print("[SaveFile] Error while unpacking file #{}".format(i))
+                logging.error(f"[SaveFile] Error while unpacking file #{i}")
                 return
         return files
 
@@ -783,6 +1059,7 @@ class SaveFile:
     def metadata(self):
         return {'path': self.path, 'mode': self.mode, 'attributes': self.attributes, 'type': self.node_type}
 
+    @staticmethod
     def pack_all(files):
         data = bytes()
         for file in files:
@@ -790,7 +1067,7 @@ class SaveFile:
         return data
 
     def __len__(self):
-        return FileHDR.PACK_SIZE + alignUp(len(self.data), BLOCK_SZ) if self.node_type == 1 else 0
+        return FileHDR.PACK_FORMAT.size + alignUp(len(self.data), BLOCK_SZ) if self.node_type == 1 else 0
 
 
 class SaveBin:
@@ -805,24 +1082,23 @@ class SaveBin:
     def __str__(self) -> str:
         return f"SaveBin(header={str(self.header)}, bkheader={str(self.bkheader)}, files=[{', '.join([str(file) for file in self.files])}])"
 
+    @staticmethod
     def from_file(reader: FileIO):
         header = Header.from_file(reader)
         if header is None:
-            if verbosity > 0:
-                print("[SaveBin] Could not parse Header")
+            logging.error("[SaveBin] Could not parse Header")
             return
         bkheader = BkHeader.from_file(reader)
         if bkheader is None:
-            if verbosity > 0:
-                print("[SaveBin] Could not parse BkHeader")
+            logging.error("[SaveBin] Could not parse BkHeader")
             return
         files = SaveFile.unpack_all(reader, bkheader)
         if files is None:
-            if verbosity > 0:
-                print("[SaveBin] Could not parse files")
+            logging.error("[SaveBin] Could not parse files")
             return
         return SaveBin(header, bkheader, files)
 
+    @staticmethod
     def generate(banner: FileIO, game_version: str):
         files = []
         bkheader = BkHeader.generate(files, game_version)
@@ -844,12 +1120,30 @@ class SaveBin:
         self.bkheader.total_size = self.bkheader.size_of_files + FULL_CERT_SZ
 
     def add_file(self, path, data, mode=0x3f, attributes=0, node_type=1):
-        indices = [i for i, f in enumerate(self.files) if f.path == path]
+        indices = [i for i, f in enumerate(
+            self.files) if f.path == path]
+        indices.sort(reverse=True)
         # Remove all duplicate occurences
-        if len(indices) > 0:
-            self.files = [f for i, f in enumerate(
-                self.files) if not i in indices]
+        n_idx = len(indices)
+        if n_idx > 0:
+            logging.debug(
+                f"{n_idx} file{'s' if n_idx > 1 else ''} already exist with the same name. Removing them...")
+            for idx in indices:
+                self.files.pop(idx)
+        logging.debug(f"Adding '{path}'...")
         self.files.append(SaveFile(mode, attributes, node_type, path, data))
+        self._update_bk_files()
+
+    def rm_file(self, path):
+        indices = [i for i, f in enumerate(
+            self.files) if f.path == path]
+        indices.sort(reverse=True)
+        # Remove all occurences
+        n_idx = len(indices)
+        if n_idx > 0:
+            logging.debug(f"removing '{path}'...")
+            for idx in indices:
+                self.files.pop(idx)
         self._update_bk_files()
 
     def config(self):
@@ -965,7 +1259,7 @@ def generate_zeldaTp(save_bin: SaveBin):
     data = bytes(0x4000)
     for i in range(1, 4):
         data = update_checksum(data, i)
-    save_bin.add_file("zeldaTp.dat", data, 0x34, 0, NODE_TYPE_FILE)
+    save_bin.add_file("zeldaTp.dat", data, 0x34, 0, NodeType.FILE)
 
 # +-------------+
 # | Main script |
@@ -1002,6 +1296,14 @@ def directoryPathParser(string):
     return string
 
 
+def filePathParser(string):
+    if os.path.exists(string):
+        if not os.path.isfile(string):
+            raise argparse.ArgumentTypeError(
+                "The output has to be a file; Got a directory")
+    return string
+
+
 def updateMetaData(save_bin: SaveBin, meta: Dict[str, Any]):
     save_bin.header.tid = meta["tid"] if "tid" in meta else save_bin.header.tid
     save_bin.header.permissions = meta["permissions"] if "permissions" in meta else save_bin.header.permissions
@@ -1020,15 +1322,17 @@ def updateMetaData(save_bin: SaveBin, meta: Dict[str, Any]):
                 continue
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(TXT_PROG_NAME, description=TXT_PROG_DESC)
+def main():
+    parser = argparse.ArgumentParser(
+        sys.argv[0], description="Tool to pack/unpack Wii saves & inject REL modules.")
     parser.add_argument("-v", "--verbose", action="count",
                         help="increase verbosity of the output", default=1)
     parser.add_argument("-q", "--quiet", action="store_true",
                         help="prevents output to the console", default=False)
     parser.add_argument("-V", "--version", action="version", version=VERSION)
     subparsers = parser.add_subparsers(
-        dest="command", metavar="command", help="Available commands are: generate, inject, patch, unpack, pack, meta, format")
+        dest="command", metavar="command", help="Available commands are: generate, inject, patch, unpack, pack, meta, format, banner, files")
+    # Generate
     gen_parser = subparsers.add_parser(
         "generate", description="Generate a new save file", help="Generate a new save file")
     gen_parser.add_argument("-i", "--index", action="append", type=parseFileNumber,
@@ -1051,6 +1355,7 @@ if __name__ == "__main__":
                             '1', '2'], help="Choose which version of the loader to put in the save file", default='1')
     gen_parser.add_argument("-f", "--file-name", type=parseSaveFileName,
                             help="The player name in the save file (31 character max)", default=None)
+    # Inject
     inj_parser = subparsers.add_parser(
         "inject", description="Injects into an existing save file", help="Injects into an existing save file")
     inj_parser.add_argument("-i", "--index", action="append", type=parseFileNumber,
@@ -1075,6 +1380,7 @@ if __name__ == "__main__":
                             '1', '2'], help="Choose which version of the loader to put in the save file", default='1')
     inj_parser.add_argument("-f", "--file-name", type=parseSaveFileName,
                             help="The player name in the save file (31 character max)", default=None)
+    # Patch
     patch_parser = subparsers.add_parser(
         "patch", description="Patches a zeldaTp.dat file", help="Patches a zeldaTp.dat file")
     patch_parser.add_argument("-i", "--index", action="append", type=parseFileNumber,
@@ -1091,6 +1397,7 @@ if __name__ == "__main__":
         '1', '2'], help="Choose which version of the loader to put in the save file", default='2')
     patch_parser.add_argument("-f", "--file-name", type=parseSaveFileName,
                               help="The player name in the save file (31 character max)", default=None)
+    # Unpack
     unpack_parser = subparsers.add_parser(
         "unpack", description="Unpacks a save into a directory", help="Unpacks a save into a directory")
     unpack_parser.add_argument("save", type=argparse.FileType(
@@ -1099,6 +1406,7 @@ if __name__ == "__main__":
                                help="Path to the directory to unpack the save into")
     unpack_parser.add_argument("--get-meta", type=argparse.FileType('w'),
                                help="Extract the medatada of the generated save")
+    # Pack
     pack_parser = subparsers.add_parser(
         "pack", description="Packs a folder into a new save file", help="Packs data files into a new save file")
     pack_parser.add_argument("out_path", type=argparse.FileType(
@@ -1113,30 +1421,71 @@ if __name__ == "__main__":
         "-m", "--meta", type=argparse.FileType("r"), help="Metadata to use for the save file")
     pack_parser.add_argument("--get-meta", type=argparse.FileType('w'),
                              help="Extract the medatada of the generated save")
+    # Meta
     meta_parser = subparsers.add_parser(
         "meta", description="Extract metadata from a save file", help="Extract metadata from a save file")
     meta_parser.add_argument("save", type=argparse.FileType(
         'rb'), help="Save file to extract the metadata from")
     meta_parser.add_argument("out", type=argparse.FileType(
         'w'), help="Path the the file where to write the metadata (JSON format)")
+    # Format
     format_parser = subparsers.add_parser(
         "format", description="Format a rel file to make it compatible with the loader", help="Format a rel file to make it compatible with the loader")
     format_parser.add_argument("rel", type=argparse.FileType(
         'rb'), help="Path to the REL module to format")
     format_parser.add_argument(
         "out", type=str, help="Where to write the patched file")
+    # Banner
+    banner_parser = subparsers.add_parser(
+        "banner", description="Extract banner from save file", help="Extract banner from save file")
+    banner_parser.add_argument("save", type=argparse.FileType(
+        'rb'), help="Path to the save file to unpack")
+    banner_parser.add_argument("out", type=filePathParser,
+                               help="Path to the file to store the banner into")
+    # Files
+    files_parser = subparsers.add_parser(
+        "files", description="Operations on the file inside the save.", help="Operations on the file inside the save.")
+    files_subparser = files_parser.add_subparsers(
+        dest="files_cmd", metavar="CMD", help="Available commands are: add, list, rm")
+    # Files; Add
+    files_add_parser = files_subparser.add_parser(
+        "add", description="Adds file(s) to a save", help="Adds file(s) to a save")
+    files_add_parser.add_argument(
+        "save", type=argparse.FileType('rb'), metavar="<save>", help="Path to the save file")
+    files_add_parser.add_argument("-o", "--output", nargs='?', type=argparse.FileType(
+        'wb'), default=None, help="Path to where to store the result (default: overwrites 'save')")
+    files_add_parser.add_argument("file", type=argparse.FileType(
+        'rb'), nargs="+", metavar="<file>", help="Path to the file(s) to add to the save")
+    # Files; List
+    files_list_parser = files_subparser.add_parser(
+        "list", description="Lists the file(s) within a given save", help="Lists the files within a given save")
+    files_list_parser.add_argument("save", type=argparse.FileType(
+        'rb'), metavar="<save>", help="Path to the save file")
+    # Files; Remove
+    files_rm_parser = files_subparser.add_parser(
+        "rm", description="Removes the file(s) within the save", help="Removes the file(s) within the save")
+    files_rm_parser.add_argument("save", type=argparse.FileType(
+        'rb'), metavar="<save>", help="Path to the save file")
+    files_rm_parser.add_argument("-o", "--output", nargs='?', type=argparse.FileType(
+        'wb'), default=None, help="Path to where to store the result (default: overwrites 'save')")
+    files_rm_parser.add_argument(
+        "file", type=str, nargs="+", metavar="<file>", help="Name of the file(s) to remove from the save")
+    # Help
     help_parser = subparsers.add_parser(
         "help", description="Get a help guide for a command", help="Get a help guide for a command")
     help_parser.add_argument("cmd", choices=[
-                             "generate", "inject", "pack", "unpack", "patch", "meta", "format", "help"], help="A command you need help with", nargs='?')
+                             "generate", "inject", "pack", "unpack", "patch", "meta", "format", "banner", "files", "help"], help="A command you need help with", nargs='?')
+
     args = parser.parse_args()
+
+    # Phase 1: Extract the simple options and check if it's only looking for a help text.
 
     if not "command" in args or args.command is None:
         parser.print_help()
         sys.exit(0)
 
     parsers = {"generate": gen_parser, "inject": inj_parser, "patch": patch_parser,
-               "pack": pack_parser, "unpack": unpack_parser, "help": help_parser, "meta": meta_parser, "format": format_parser}
+               "pack": pack_parser, "unpack": unpack_parser, "help": help_parser, "meta": meta_parser, "format": format_parser, "banner": banner_parser, "files": files_parser}
 
     if args.command == "help":
         if not args.cmd is None:
@@ -1147,67 +1496,77 @@ if __name__ == "__main__":
 
     verbosity = args.verbose if not args.quiet else 0
 
-    # Prepare the save_bin
+    LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+    loglevel = LEVELS[min(max(4 - verbosity, 0), 4)]
+
+    numeric_level = getattr(logging, loglevel.upper(), logging.CRITICAL)
+    logging.basicConfig(
+        level=numeric_level, format="[%(levelname)s]\t[%(asctime)s]\t%(pathname)s:%(lineno)d %(funcName)s: %(message)s")
+
+    # Phase 2: Load files and data/options
+
+    # Phase 2.1: Load and/or generate the Save File (if needed)
     save_bin = None
-    if args.command in ["inject", "unpack", "meta"]:
+    if args.command in ["inject", "unpack", "meta", "banner", "files"]:
         # We need to fetch the save_bin from a provided file
-        if verbosity > 1 and args.command == "inject":
-            print('injecting "{}" into "{}"'.format(
-                args.rel.name, args.save.name))
-        save_bin = SaveBin.from_file(args.save)
-        args.save.close()
+        with args.save as save:
+            if args.command == "inject":
+                prefix_len = len(os.path.commonprefix(
+                    [args.rel.name, save.name]))
+                logging.info(
+                    f"injecting '{'.../' if prefix_len > 0 else ''}{args.rel.name[prefix_len:]}' into '{'.../' if prefix_len > 0 else ''}{args.save.name[prefix_len:]}'")
+            save_bin = SaveBin.from_file(save)
         if save_bin is None:
-            if verbosity > 0:
-                print("Error: Could not parse save file")
+            logging.error("Could not parse save file")
             sys.exit(1)
-        if verbosity == 3:
-            print("Loaded SaveBin:", str(save_bin))
-        elif verbosity > 3:
-            print("Loaded SaveBin:", repr(save_bin))
+        logging.info("Loaded SaveBin")
+        logging.debug(f"{save_bin}")
     elif args.command == "generate":
         # We need to generate a new save_bin
-        if verbosity > 1:
-            print("Generating new save file ")
-        save_bin = SaveBin.generate(args.banner, args.game_version)
-        args.banner.close()
+        logging.info("Generating new save file")
+        with args.banner as banner:
+            save_bin = SaveBin.generate(banner, args.game_version)
         generate_zeldaTp(save_bin)
-        if verbosity == 3:
-            print("Generated SaveBin:", str(save_bin))
-        elif verbosity > 3:
-            print("Generated SaveBin:", repr(save_bin))
+        logging.debug(f"{save_bin}")
     elif args.command in ["pack", "patch", "format"]:
         # We don't need any save file
         pass
     else:
-        if verbosity > 0:
-            print(f'Error: command not supported "{args.command}"')
+        logging.error(f'Error: command not supported {args.command!a}')
         sys.exit(1)
+
+    # Phase 2.2: Make sure we have a valid file index to put the loader into (if needed)
 
     if args.command in ["inject", "generate", "patch"]:
         # We need to make sure we have the index of the file to patch the loader into. Default is file 3
         if args.index is None:
+            logging.info("No file index provided, defaulting to 3")
             args.index = [3]
+
+    # Phase 2.3: Load and process the rel file (if needed)
 
     rel_bin = None
     if args.command in ["inject", "generate", "format"]:
         # Format the rel file
-        rel_data = args.rel.read()
-        args.rel.close()
+        with args.rel as rel:
+            rel_data = rel.read()
         rel_bin = struct.pack('>I', len(rel_data)) + bytes(0x1C) + rel_data
+        size = len(rel_bin)
+        logging.info(f"REL file loaded ({size = })")
+
+    # Phase 3: Execute the command and save the results
 
     if args.command in ["inject", "generate"]:
         # Inject the rel into the save_bin
         args.out = open(args.out, 'wb')
         if args.game_version is None:
             if not save_bin.header.tid in TIDS.keys():
-                if verbosity > 0:
-                    print(
-                        "Error: Game version unrecognized, please provide the --game-version option.")
+                logging.error(
+                    "Error: Game version unrecognized, please provide the --game-version option.")
                 sys.exit(1)
             args.game_version = TIDS[save_bin.header.tid]
-        if verbosity > 1:
-            print("Game id: {:08x}-{}".format(save_bin.header.tid >> 32,
-                                              struct.pack('>I', save_bin.header.tid & 0xffffffff).decode()))
+        logging.info(
+            f'Game ID: {save_bin.header.tid >> 32:08x}-{struct.pack(">I", save_bin.header.tid & 0xffffffff).decode()}')
         save_bin.add_file("pcrel.bin", rel_bin)
         zeldaTp_idx = find_zeldaTp_idx(save_bin)
         if not zeldaTp_idx is None:
@@ -1215,8 +1574,8 @@ if __name__ == "__main__":
                 save_bin.files[zeldaTp_idx].data = bytes(
                     patch_file(save_bin.files[zeldaTp_idx].data, file_idx, args.game_version, args.name, args.loader_version, args.file_name))
         else:
-            if verbosity > 0:
-                print('Error: no "zeldaTp.dat" file in the save archive')
+            logging.error(
+                'Error: no "zeldaTp.dat" file in the save archive')
             sys.exit(1)
 
         if "meta" in args and not args.meta is None:
@@ -1229,10 +1588,7 @@ if __name__ == "__main__":
                       sort_keys=True, indent=4)
             args.get_meta.close()
 
-        if verbosity == 3:
-            print("Produced SaveBin:", str(save_bin))
-        elif verbosity > 3:
-            print("Produced SaveBin:", repr(save_bin))
+        logging.debug(f"Produced SaveBin: {save_bin}")
 
         save_bin.to_file(args.out)
     elif args.command == "unpack":
@@ -1254,7 +1610,6 @@ if __name__ == "__main__":
             json.dump(save_bin.config(), args.get_meta,
                       sort_keys=True, indent=4)
             args.get_meta.close()
-
     elif args.command == "pack":
         header = Header.unpack(args.header.read())
         bkheader = BkHeader.unpack(args.bkheader.read())
@@ -1264,7 +1619,7 @@ if __name__ == "__main__":
         save_bin._update_bk_files()
         for file in args.files:
             save_bin.add_file(os.path.basename(file.name),
-                              file.read(), node_type=NODE_TYPE_FILE)
+                              file.read(), node_type=NodeType.FILE)
             file.close()
 
         if "meta" in args and not args.meta is None:
@@ -1277,24 +1632,19 @@ if __name__ == "__main__":
                       sort_keys=True, indent=4)
             args.get_meta.close()
 
-        if verbosity == 3:
-            print("Generated SaveBin:", str(save_bin))
-        elif verbosity > 3:
-            print("Generated SaveBin:", repr(save_bin))
+        logging.debug(f"Generated SaveBin: {save_bin}")
         save_bin.to_file(args.out_path)
     elif args.command == "patch":
         if args.game_version is None:
-            if verbosity > 0:
-                print(
-                    "Error: Game version required, please provide it through the --game-version option.")
+            logging.error(
+                "Error: Game version required, please provide it through the --game-version option.")
             sys.exit(1)
         zeldaTp_data = args.file.read()
         args.file.close()
         if len(zeldaTp_data) != 0x4000:
-            if verbosity > 0:
-                print(
-                    f"Error: wrong file size (0x{len(zeldaTp_data):08x}; expected 0x4000)")
-                sys.exit(1)
+            logging.error(
+                f"Error: wrong file size (0x{len(zeldaTp_data):08x}; expected 0x4000)")
+            sys.exit(1)
         for file_idx in args.index:
             zeldaTp_data = bytes(patch_file(
                 zeldaTp_data, file_idx, args.game_version, args.name, args.loader_version, args.file_name))
@@ -1305,5 +1655,54 @@ if __name__ == "__main__":
         out = open(args.out, 'wb')
         out.write(rel_bin)
         out.close()
+    elif args.command == "banner":
+        out = open(args.out, 'wb')
+        out.write(save_bin.header.banner)
+        out.close()
     elif args.command == "meta":
         json.dump(save_bin.config(), args.out, sort_keys=True, indent=4)
+    elif args.command == "files":
+        if args.files_cmd == "add":
+            file_path = args.save.name
+            for file in args.file:
+                file_name = os.path.basename(file.name)
+                logging.info(f"Loading '{file_name}'...")
+                with file as f:
+                    file_data = f.read()
+                logging.debug(f"Adding '{file_name}'...")
+                save_bin.add_file(file_name, file_data)
+            if args.output is None:
+                logging.info(
+                    f"No output file provided, overwritting input save")
+                logging.debug(f"({file_path})")
+                with open(file_path, 'wb') as f:
+                    save_bin.to_file(f)
+            else:
+                with args.output as out:
+                    save_bin.to_file(out)
+        elif args.files_cmd == "list":
+            print("id\ttype\tmode\tattr\tpath")
+            for i, file in enumerate(save_bin.files):
+                print(
+                    f"#{i:04d}\t{file.node_type.name[:1].upper() + file.node_type.name.lower()[1:]}\t{file.mode}\t{file.attributes}\t{file.path}")
+        elif args.files_cmd == "rm":
+            file_path = args.save.name
+            for file in args.file:
+                save_bin.rm_file(file)
+            if args.output is None:
+                logging.info(
+                    f"No output file provided, overwritting input save")
+                logging.debug(f"({file_path})")
+                with open(file_path, 'wb') as f:
+                    save_bin.to_file(f)
+            else:
+                with args.output as out:
+                    save_bin.to_file(out)
+        # TODO Add a command to edit a file's properties.
+        else:
+            raise ValueError(
+                f"'{args.files_cmd}' is not a recognized 'files' command.")
+
+
+if __name__ == "__main__":
+    main()
