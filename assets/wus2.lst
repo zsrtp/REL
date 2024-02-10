@@ -124,7 +124,6 @@
 800bd628:procDiveJump
 800be504:procCrouchInit
 800be574:procCrouch
-800cd944:setClothesChange
 800eec58:procCrawlStartInit
 800eedc0:procCrawlStart
 800eeea8:procCrawlMoveInit
@@ -345,7 +344,5 @@
 803ab34c:memmove
 
 80520e35:sPauseTimer
-
-80574900:ChkGroundHit
 
 CC008000:wgPipe
