@@ -104,7 +104,6 @@
 
 // d_item.o
 800920c4:checkItemGet
-80131680:setClothesChange
 803f2cc8:item_func_ptr
 803f30c8:item_getcheck_func_ptr
 80092070:execItemGet
@@ -136,6 +135,7 @@
 8010e150:checkTreasureRupeeReturn
 80112420:procGanonFinishInit
 801124a4:procGanonFinish
+80131680:setClothesChange
 //806d4cd8:dComIfGs_isEventBit
 803d4494:getSeType
 80096b4c:checkStageName
