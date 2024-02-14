@@ -25,7 +25,7 @@ _VERSION:='"$(_VERSION_MAJOR).$(_VERSION_MINOR).$(_VERSION_PATCH)"'
 _VARIANT:=public
 
 # This shows up in the memory card (manager) and can contain spaces
-PROJECT_NAME := REL Example
+PROJECT_NAME := Rupee Damage
 # This will be the resulting .gci file - No spaces
 OUTPUT_FILENAME := REL
 
