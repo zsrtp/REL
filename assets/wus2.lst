@@ -87,6 +87,7 @@
 8001e79c:fapGm_Execute
 
 // f_op_actor_mng.o
+8001f954:fopAcM_create
 80021410:createItemForPresentDemo
 8002149c:createItemForTrBoxDemo
 80021968:createItemForBoss
@@ -115,10 +116,26 @@
 
 // d_a_alink.h
 800a98d0:setStickData
+800b2580:checkNextActionFromCrouch
 800b2a54:checkHeavyStateOn
+800bccb0:procAutoJumpInit
+800bd050:procAutoJump
+800bd560:procDiveJumpInit
+800bd628:procDiveJump
+800be504:procCrouchInit
+800be574:procCrouch
+800eec58:procCrawlStartInit
+800eedc0:procCrawlStart
+800eeea8:procCrawlMoveInit
+800eeff0:procCrawlMove
+800ef424:procCrawlAutoMoveInit
+800ef4d8:procCrawlAutoMove
+800ef784:procCrawlEndInit
+800ef92c:procCrawlEnd
 8010e150:checkTreasureRupeeReturn
 80112420:procGanonFinishInit
 801124a4:procGanonFinish
+80131680:setClothesChange
 //806d4cd8:dComIfGs_isEventBit
 803d4494:getSeType
 80096b4c:checkStageName
@@ -137,6 +154,9 @@
 
 // d_menu_collect.o
 801979d8:setWalletMaxNum
+
+// d_meter2.o
+8020c268:moveKantera
 
 // JKRHeap.o
 802cd510:__nw_JKRHeap
