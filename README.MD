@@ -19,7 +19,7 @@ REL
 ├───bin/                    // Binary files and scripts
 │   ├───gcipack.py          // Packs a REL into a GCI
 │   ├───nandpack.py         // Packs a REL into a Wii save
-│   ├───requirements.txt    // Packs a REL into a Wii save
+│   ├───requirements.txt    // Python requirements file for all scripts dependencies
 ├───docs/                   // Doxygen Output folder; can be used for GitHub pages - change in doxygen.conf
 ├───include/                // Your Header (.h) files
 ├───source/                 // Your Source (.cpp) files
