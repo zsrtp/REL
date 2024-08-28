@@ -7,6 +7,10 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>/devkitPPC")
 endif
 
+ifeq ($(shell which pyelf2rel),)
+$(error "Please install pyelf2rel. pip install pyelf2rel")
+endif
+
 ifeq ($(PLATFORM),wii)
 include $(DEVKITPPC)/wii_rules
 else ifeq ($(PLATFORM),gcn)
@@ -38,12 +42,7 @@ NANDPACK := python3 ../bin/nandpack.py
 
 UNAME := $(shell uname)
 
-ifeq ($(UNAME), Linux)
-	ELF2REL := ../bin/elf2rel
-else
-	ELF2REL := ../bin/elf2rel.exe
-endif
-
+ELF2REL := pyelf2rel
 
 ifeq ($(VERSION),)
 all: gcn wii
@@ -261,7 +260,7 @@ $(OFILES_SOURCES) : $(HFILES)
 # REL linking
 %.rel: %.elf
 	@echo output ... $(notdir $@)
-	@$(ELF2REL) $< -s $(MAPFILE)
+	@$(ELF2REL) $< $(MAPFILE) $@
 
 ifeq ($(PLATFORM),gcn)
 %.gci: %.rel
