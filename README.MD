@@ -43,6 +43,10 @@ Our [wiki](//wiki.tprandomizer.com) is meant to be a central source of informati
 ### Coding guidelines
 If you intend to share this code with the @zsrtp community, please follow the [guidelines](//wiki.tprandomizer.com/index.php?title=Dev:Coding_Guidelines) as strictly as possible.
 
+## Development environment
+
+The requirements for building the project are listed in the next section [Building](#building). However, [Dev Container](https://code.visualstudio.com/docs/devcontainers/tutorial) is available. You can install the [VSCode extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) to use it directly in VSCode, or you can launch the repository in a [Github Codespace](https://github.com/features/codespaces) and automatically load the devcontainer.
+
 ## Building
 ---
 **Repository**
