@@ -7,7 +7,7 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>/devkitPPC")
 endif
 
-ifeq ($(shell which pyelf2rel),)
+ifeq ($(shell which elf2rel),)
 $(error "Please install pyelf2rel. pip install pyelf2rel")
 endif
 
@@ -42,7 +42,7 @@ NANDPACK := python3 ../bin/nandpack.py
 
 UNAME := $(shell uname)
 
-ELF2REL := pyelf2rel
+ELF2REL := elf2rel
 
 ifeq ($(VERSION),)
 all: gcn wii
