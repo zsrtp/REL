@@ -17,10 +17,9 @@ REL
 |   ├───icon.raw            // Game icon for the GCI
 │   ├───*.lst          	    // Symbol:Address pairs for each version of the game
 ├───bin/                    // Binary files and scripts
-│   ├───elf2rel             // Linux Binary of elf2rel
-│   ├───elf2rel.exe         // Windows "
 │   ├───gcipack.py          // Packs a REL into a GCI
 │   ├───nandpack.py         // Packs a REL into a Wii save
+│   ├───requirements.txt    // Python requirements file for all scripts dependencies
 ├───docs/                   // Doxygen Output folder; can be used for GitHub pages - change in doxygen.conf
 ├───include/                // Your Header (.h) files
 ├───source/                 // Your Source (.cpp) files
@@ -43,6 +42,10 @@ Our [wiki](//wiki.tprandomizer.com) is meant to be a central source of informati
 
 ### Coding guidelines
 If you intend to share this code with the @zsrtp community, please follow the [guidelines](//wiki.tprandomizer.com/index.php?title=Dev:Coding_Guidelines) as strictly as possible.
+
+## Development environment
+
+The requirements for building the project are listed in the next section [Building](#building). However, [Dev Container](https://code.visualstudio.com/docs/devcontainers/tutorial) is available. You can install the [VSCode extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) to use it directly in VSCode, or you can launch the repository in a [Github Codespace](https://github.com/features/codespaces) and automatically load the devcontainer.
 
 ## Building
 ---
@@ -72,7 +75,8 @@ Done.
 **Dependencies**
   * DevkitPPC comes with [devkitPro](//github.com/devkitPro/installer/releases)
   * [Python3](//www.python.org/downloads) (should be added to PATH or you will likely need Makefile adjustments)
-  * [pycryptodomex](https://pypi.org/project/pycryptodomex/) (For Wii only, dependency of [`nandpack.py`](https://github.com/kipcode66/wii_tools))
+  * [pyelf2rel](https://pypi.org/project/pyelf2rel/) (the script used to convert ELF files to REL modules)
+  * [pycryptodome](https://pypi.org/project/pycryptodome/) (For Wii only, dependency of [`nandpack.py`](https://github.com/kipcode66/wii_tools))
   * Optional: [Visual Studio Code](//code.visualstudio.com) with [GC Settings](//wiki.tprandomizer.com/index.php?title=Dev:Visual_Studio_Code)
 
 **Compiling**

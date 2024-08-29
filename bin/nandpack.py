@@ -18,6 +18,7 @@
 # Copyright 2020 Linus S. (aka PistonMiner)
 # Modifications made by Zephiles
 
+from functools import reduce
 import logging
 import sys
 import os
@@ -26,13 +27,14 @@ import struct
 import ctypes
 from io import FileIO
 from enum import IntEnum
-from typing import Any, ByteString, Dict, List
-from Crypto.Cipher import AES
+from typing import Any, Dict, List
 import hashlib
 import secrets
 import json
 import base64
-from datetime import datetime
+from datetime import datetime, timezone
+import re
+from Crypto.Cipher import AES
 
 # +----------------------+
 # | Constants definition |
@@ -548,7 +550,7 @@ class Point:
         return Point(rx, ry)
 
     def __mul__(self, other):
-        if not isinstance(other, ByteString):
+        if not isinstance(other, bytes | bytearray | memoryview):
             raise TypeError(
                 f"Point only multiplies with bytes, "
                 f"got {other.__class__.__name__}")
@@ -1010,7 +1012,7 @@ class FileHDR:
         return FileHDR.PACK_FORMAT.pack(self.magic, self.size, self.permissions, self.attrib, self.node_type, self.name, self.padding, self.iv, self.unk)
 
 
-class SaveFile:
+class SaveNode:
     def __init__(self, mode=0, attributes=0, node_type: NodeType = NodeType.DIR, path="", data=None):
         self.mode = mode
         self.attributes = attributes
@@ -1019,10 +1021,12 @@ class SaveFile:
         self.data = data
 
     def __repr__(self) -> str:
-        return f"SaveFile(path={repr(self.path)}, node_type={self.node_type}, mode={self.mode}, attributes={self.attributes}, data={self.data})"
+        data = f", data={self.data}" if self.data is not None else ""
+        return f"SaveNode(path={repr(self.path)}, node_type={self.node_type}, mode={self.mode}, attributes={self.attributes}{data})"
 
     def __str__(self) -> str:
-        return f"SaveFile(path=\"{self.path}\", node_type={self.node_type.name[:1].upper() + self.node_type.name.lower()[1:]}, mode={self.mode}, attributes={self.attributes}, data={self.data.__class__.__name__}({len(self.data)}))"
+        data = f", data={self.data.__class__.__name__}({len(self.data)})" if self.data is not None else ""
+        return f"SaveNode(path=\"{self.path}\", node_type={self.node_type.name[:1].upper() + self.node_type.name.lower()[1:]}, mode={self.mode}, attributes={self.attributes}{data})"
 
     @staticmethod
     def unpack(reader: FileIO):
@@ -1036,20 +1040,20 @@ class SaveFile:
             rounded_size = alignUp(size, BLOCK_SZ)
             file_data = reader.read(rounded_size)
             file_data = aes_cbc_decrypt(SD_KEY, file_hdr.iv, file_data)[0:size]
-        return SaveFile(file_hdr.permissions, file_hdr.attrib, file_hdr.node_type,
+        return SaveNode(file_hdr.permissions, file_hdr.attrib, file_hdr.node_type,
                         file_hdr.name.split(b'\x00')[0].decode('utf-8'), file_data)
 
     @staticmethod
     def unpack_all(reader: FileIO, bkh: BkHeader):
-        files: List[SaveFile] = []
+        files: List[SaveNode] = []
         reader.seek(Header.PACK_SIZE + BkHeader.PACK_FORMAT.size)
         for i in range(0, bkh.number_of_files):
-            logging.debug(f"[SaveFile] Unpacking file #{i}")
-            file = SaveFile.unpack(reader)
+            logging.debug(f"[SaveNode] Unpacking file #{i}")
+            file = SaveNode.unpack(reader)
             if not file is None:
                 files.append(file)
             else:
-                logging.error(f"[SaveFile] Error while unpacking file #{i}")
+                logging.error(f"[SaveNode] Error while unpacking file #{i}")
                 return
         return files
 
@@ -1079,7 +1083,7 @@ class SaveFile:
 
 
 class SaveBin:
-    def __init__(self, header: Header, bkheader: BkHeader, files: List[SaveFile]):
+    def __init__(self, header: Header, bkheader: BkHeader, files: List[SaveNode]):
         self.header = header
         self.bkheader = bkheader
         self.files = files
@@ -1100,7 +1104,7 @@ class SaveBin:
         if bkheader is None:
             logging.error("[SaveBin] Could not parse BkHeader")
             return
-        files = SaveFile.unpack_all(reader, bkheader)
+        files = SaveNode.unpack_all(reader, bkheader)
         if files is None:
             logging.error("[SaveBin] Could not parse files")
             return
@@ -1115,7 +1119,7 @@ class SaveBin:
 
     def to_file(self, writer: FileIO):
         writer.write(self.header.pack())
-        data1 = self.bkheader.pack() + SaveFile.pack_all(self.files)
+        data1 = self.bkheader.pack() + SaveNode.pack_all(self.files)
         writer.write(data1)
         data_sha1 = sha1(data1)
         ap_sig, ap_cert = sign(SYSTEM_MENU, data_sha1, self.bkheader.ngid)
@@ -1127,7 +1131,7 @@ class SaveBin:
         self.bkheader.size_of_files = sum(len(file) for file in self.files)
         self.bkheader.total_size = self.bkheader.size_of_files + FULL_CERT_SZ
 
-    def add_file(self, path, data, mode=0x3f, attributes=0, node_type=1):
+    def add_file(self, path, data, mode=0x3f, attributes=0, node_type=NodeType.FILE):
         indices = [i for i, f in enumerate(
             self.files) if f.path == path]
         indices.sort(reverse=True)
@@ -1138,9 +1142,37 @@ class SaveBin:
                 f"{n_idx} file{'s' if n_idx > 1 else ''} already exist with the same name. Removing them...")
             for idx in indices:
                 self.files.pop(idx)
+        # Split the path into component dirs, and fold it to get each directory's full path.
+        def fold(acc, x):
+            l = []
+            l.extend(acc)
+            l.append(acc[-1] + '/' + x)
+            return l
+        dirs = path.split('/')[:-1]
+        if len(dirs) > 1:
+            dirs = reduce(fold, dirs[1:], [dirs[0]])
+        # Checking for all the parent directories if they exist
+        for d in dirs:
+            # For each parent directory, find it in the list...
+            f = next((f for f in self.files if f.path == d), None)
+            if not f is None:
+                # ... if found, skip to the next directory...
+                if f.node_type != NodeType.DIR:
+                    raise RuntimeError(f"'{d}' already exists and is not a directory")
+                logging.debug(f"'{d}' found")
+                continue
+            else:
+                # ... else create directory.
+                logging.debug(f"'{d}' not found")
+                self.add_file(d, None, mode, attributes, NodeType.DIR)
         logging.debug(f"Adding '{path}'...")
-        self.files.append(SaveFile(mode, attributes, node_type, path, data))
+        self.files.append(SaveNode(mode, attributes, node_type, path, data))
+        self._sort_files()
         self._update_bk_files()
+
+    def _sort_files(self):
+        self.files.sort(key=lambda x: x.path)
+        pass
 
     def rm_file(self, path):
         indices = [i for i, f in enumerate(
@@ -1149,9 +1181,15 @@ class SaveBin:
         # Remove all occurences
         n_idx = len(indices)
         if n_idx > 0:
+            # If it is a directory, remove all the children recursively
+            for f in [self.files[idx] for idx in indices]:
+                if f.node_type == NodeType.DIR:
+                    for sub_path in [x.path for x in self.files if x.path.startswith(f.path + '/')]:
+                        self.rm_file(sub_path)
             logging.debug(f"removing '{path}'...")
             for idx in indices:
                 self.files.pop(idx)
+        self._sort_files()
         self._update_bk_files()
 
     def config(self):
@@ -1233,7 +1271,7 @@ def patch_file(data: bytes, fileNumber: int, version: str, rel_name: str = "mod.
         data[offsetFile1 + offset:offsetFile1 + offset + len(value)] = value
 
     # Set the last save time to the current date (as a kind of build date)
-    ticks = (datetime.utcnow() - datetime(2000, 1, 1)
+    ticks = (datetime.now(timezone.utc).replace(tzinfo=None) - datetime(2000, 1, 1)
              ).total_seconds() * (OS_BUS_CLOCK / 4)
     patchFilesS64(0x28, int(ticks))
 
@@ -1297,7 +1335,7 @@ def main():
     def parseSaveFileName(string):
         if len(string) > 31:
             raise argparse.ArgumentTypeError(
-                f"Savefile name is too long (31 characters max; got {len(string)})")
+                f"File path is too long (31 characters max; got {len(string)})")
         return string
 
 
@@ -1315,6 +1353,26 @@ def main():
                 raise argparse.ArgumentTypeError(
                     "The output has to be a file; Got a directory")
         return string
+
+    file_map_parser_re = re.compile("^([^\\:]*?)\\:([^\\:]*?)$")
+    def fileMapParser(string):
+        m = file_map_parser_re.match(string)
+        if not m:
+            raise argparse.ArgumentTypeError(f'"{string}" is not a valid mapping')
+        if len(m.group(2)) > 31:
+            raise argparse.ArgumentTypeError(
+                f"File path is too long (31 characters max; got {len(m.group(2))})")
+        return string
+
+    class NameMapping:
+        def __init__(self, old, new):
+            self.old = old
+            self.new = new
+
+        @staticmethod
+        def parse(string):
+            m = file_map_parser_re.match(string)
+            return NameMapping(m.group(1), m.group(2))
 
     # Functions only used in the main function
     # (shouldn't be defined in the root scope, since there
@@ -1454,7 +1512,7 @@ def main():
     files_parser = subparsers.add_parser(
         "files", description="Operations on the file inside the save.", help="Operations on the file inside the save.")
     files_subparser = files_parser.add_subparsers(
-        dest="files_cmd", metavar="CMD", help="Available commands are: add, list, rm")
+        dest="files_cmd", metavar="CMD", help="Available commands are: add, list, rm", required=True)
     # Files; Add
     files_add_parser = files_subparser.add_parser(
         "add", description="Adds file(s) to a save", help="Adds file(s) to a save")
@@ -1462,6 +1520,8 @@ def main():
         "save", type=argparse.FileType('rb'), metavar="<save>", help="Path to the save file")
     files_add_parser.add_argument("-o", "--output", nargs='?', type=argparse.FileType(
         'wb'), default=None, help="Path to where to store the result (default: overwrites 'save')")
+    files_add_parser.add_argument(
+        "-M", "--map", action="extend", nargs='*', type=fileMapParser, help="Map a file name to an other one")
     files_add_parser.add_argument("file", type=argparse.FileType(
         'rb'), nargs="+", metavar="<file>", help="Path to the file(s) to add to the save")
     # Files; List
@@ -1510,6 +1570,15 @@ def main():
     numeric_level = getattr(logging, loglevel.upper(), logging.CRITICAL)
     logging.basicConfig(
         level=numeric_level, format="[%(levelname)s]\t[%(asctime)s]\t%(pathname)s:%(lineno)d %(funcName)s: %(message)s")
+
+    mappings = {}
+    if args.command == "files" and args.files_cmd == "add":
+        if args.map is None:
+            args.map = []
+        for m in args.map:
+            mapping = NameMapping.parse(m)
+            logging.info(f"parsed mapping '{mapping.old}' to '{mapping.new}'")
+            mappings[mapping.old] = mapping.new
 
     # Phase 2: Load files and data/options
 
@@ -1638,6 +1707,13 @@ def main():
             args.get_meta.close()
 
         logging.debug(f"Generated SaveBin: {save_bin}")
+        # Recalculate the checksums
+        zeldaTp_idx = find_zeldaTp_idx(save_bin)
+        if zeldaTp_idx is not None:
+            data = save_bin.files[zeldaTp_idx].data
+            for i in range(1, 4):
+                data = update_checksum(data, i)
+            save_bin.files[zeldaTp_idx].data = data
         save_bin.to_file(args.out_path)
     elif args.command == "patch":
         if args.game_version is None:
@@ -1666,11 +1742,14 @@ def main():
         if args.files_cmd == "add":
             file_path = args.save.name
             for file in args.file:
-                file_name = os.path.basename(file.name)
+                file_name = file.name
                 logging.info(f"Loading '{file_name}'...")
                 with file as f:
                     file_data = f.read()
                 logging.debug(f"Adding '{file_name}'...")
+                if file_name in mappings.keys():
+                    file_name = mappings.get(file_name)
+                    logging.debug(f"(Mapped to '{file_name}')")
                 save_bin.add_file(file_name, file_data)
             if args.output is None:
                 logging.info(
