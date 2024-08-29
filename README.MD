@@ -75,7 +75,7 @@ Done.
 **Dependencies**
   * DevkitPPC comes with [devkitPro](//github.com/devkitPro/installer/releases)
   * [Python3](//www.python.org/downloads) (should be added to PATH or you will likely need Makefile adjustments)
-  * [pyelf2rel](https://pypi.org/project/pyelf2rel/) (the scripte used to convert ELF files to REL modules)
+  * [pyelf2rel](https://pypi.org/project/pyelf2rel/) (the script used to convert ELF files to REL modules)
   * [pycryptodome](https://pypi.org/project/pycryptodome/) (For Wii only, dependency of [`nandpack.py`](https://github.com/kipcode66/wii_tools))
   * Optional: [Visual Studio Code](//code.visualstudio.com) with [GC Settings](//wiki.tprandomizer.com/index.php?title=Dev:Visual_Studio_Code)
 
