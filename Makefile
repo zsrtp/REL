@@ -40,8 +40,6 @@ LIBTP_REL := externals/libtp_rel
 GCIPACK := python3 ../bin/gcipack.py
 NANDPACK := python3 ../bin/nandpack.py
 
-UNAME := $(shell uname)
-
 ELF2REL := elf2rel
 
 ifeq ($(VERSION),)
