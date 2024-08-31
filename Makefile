@@ -33,14 +33,12 @@ PROJECT_NAME := REL Example
 # This will be the resulting .gci file - No spaces
 OUTPUT_FILENAME := REL
 
-
 # DON'T TOUCH UNLESS YOU KNOW WHAT YOU'RE DOING
 LIBTP_REL := externals/libtp_rel
 
-GCIPACK := python3 ../bin/gcipack.py
-NANDPACK := python3 ../bin/nandpack.py
-
-ELF2REL := elf2rel
+export GCIPACK := python3 ../bin/gcipack.py
+export NANDPACK := python3 ../bin/nandpack.py
+export ELF2REL := elf2rel
 
 ifeq ($(VERSION),)
 all: gcn wii
